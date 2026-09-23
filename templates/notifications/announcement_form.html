@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>{% endif %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-8">{% include "partials/field.html" with field=form.title %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.audience %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.klass %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.expires_at %}</div>
+                <div class="col-md-4 d-flex align-items-end gap-3 pb-1">
+                    <div class="form-check form-switch">
+                        {{ form.is_pinned }} <label class="form-check-label small">{{ form.is_pinned.label }}</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        {{ form.is_emergency }} <label class="form-check-label small">{{ form.is_emergency.label }}</label>
+                    </div>
+                </div>
+                <div class="col-md-12">{% include "partials/field.html" with field=form.body %}</div>
+            </div>
+            {% if form.instance.pk %}
+                <div class="alert alert-light border small mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>Saving updates the announcement; users who were already notified keep their earlier notification.
+                </div>
+            {% else %}
+                <div class="alert alert-light border small mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>Publishing notifies all active users of the chosen audience (staff/teachers get bell notifications).
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'notifications:announcements' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>{% if form.instance.pk %}Save{% else %}Publish{% endif %}</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

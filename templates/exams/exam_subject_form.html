@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Subjects to {{ exam.name }}</h1>
+        <p class="page-subtitle mb-0">Pick a class and its subjects to examine</p>
+    </div>
+    <div><a class="btn btn-outline-secondary" href="{% url 'exams:detail' exam.pk %}"><i class="bi bi-arrow-left me-1"></i>Back to Exam</a></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">{% include "partials/field.html" with field=form.klass %}</div>
+                        <div class="col-md-2">{% include "partials/field.html" with field=form.max_marks %}</div>
+                        <div class="col-md-2">{% include "partials/field.html" with field=form.pass_marks %}</div>
+                        <div class="col-md-2">{% include "partials/field.html" with field=form.weightage %}</div>
+                        <div class="col-12">
+                            <label class="form-label">Subjects</label>
+                            <div class="fee-head-picker">
+                                {{ form.subjects }}
+                            </div>
+                            {% for e in form.subjects.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-transparent">
+                    <a href="{% url 'exams:detail' exam.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Subjects</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Already assigned</div>
+            <ul class="list-group list-group-flush">
+                {% for es in existing %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ es.klass.name }} — <i class="bi bi-book me-1 text-muted"></i>{{ es.subject.name }}</span>
+                        <span class="badge text-bg-light">{{ es.max_marks }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item empty-state"><i class="bi bi-book"></i>No subjects assigned yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

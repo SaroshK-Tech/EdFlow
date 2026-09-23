@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Stop" primary_url="transport:stop_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Route</th>
+                        <th>#</th>
+                        <th>Stop</th>
+                        <th>Pickup</th>
+                        <th>Drop-off</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for stop in stops %}
+                    <tr>
+                        <td><a href="{% url 'transport:route_detail' stop.route_id %}" class="text-decoration-none">{{ stop.route.name }}</a></td>
+                        <td>{{ stop.sequence }}</td>
+                        <td class="fw-semibold">{{ stop.name }}</td>
+                        <td>{{ stop.pickup_time|time:"H:i"|default:"—" }}</td>
+                        <td>{{ stop.dropoff_time|time:"H:i"|default:"—" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'transport:stop_delete' stop.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-signpost"></i>
+                            No stops yet — add pickup/drop-off points for your routes.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="fw-semibold mb-3">Issue Details</h6>
+                    {% for field in form %}
+                        <div class="mb-2">
+                            {% include "partials/field.html" with field=field %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-transparent">
+                    <a href="{% url 'library:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-book-half me-1"></i>Issue Book</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Scan or pick an available copy</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for copy in available_copies %}
+                        <button type="button"
+                                class="btn btn-sm btn-outline-success"
+                                onclick="document.getElementById('id_barcode').value='{{ copy.barcode }}'">
+                            <span class="badge text-bg-light me-1">{{ copy.barcode }}</span>{{ copy.book.title }}
+                        </button>
+                    {% empty %}
+                        <p class="text-muted small mb-0">No available copies right now.</p>
+                    {% endfor %}
+                </div>
+                <p class="small text-muted mt-3 mb-0"><i class="bi bi-qr-code me-1"></i>Type or scan a barcode above — the system finds the copy and only lets you issue it if it is available.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

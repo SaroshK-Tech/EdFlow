@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card mx-auto" style="max-width:620px;">
+        <div class="card-body">
+            {% if form.non_field_errors %}<div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>{% endif %}
+            <div class="row g-3">
+                {% for field in form %}
+                    <div class="col-md-6">{% include "partials/field.html" with field=field %}</div>
+                {% endfor %}
+            </div>
+            <div class="alert alert-info small mt-3 mb-0">
+                <i class="bi bi-file-earmark-pdf me-1"></i>The PDF opens in a new window and is saved to the generated documents history.
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'documents:list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-file-earmark-pdf me-1"></i>Generate PDF</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

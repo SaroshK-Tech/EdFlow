@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="card">
+        <div class="card-header">Work experience</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">{% include "partials/field.html" with field=form.staff %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.job_title %}</div>
+                <div class="col-12">{% include "partials/field.html" with field=form.organisation %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.start_date %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.end_date %}</div>
+                <div class="col-md-4">
+                    <div class="form-check mt-4">
+                        {{ form.current }}
+                        <label class="form-check-label" for="{{ form.current.id_for_label }}">Currently employed here</label>
+                    </div>
+                </div>
+                <div class="col-12">{% include "partials/field.html" with field=form.description %}</div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% if object %}{% url 'hr:employee_detail' object.staff_id %}{% else %}{% url 'hr:employees' %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% with steps=inquiry.workflow_status %}
+<div class="admission-workflow">
+    {% if steps %}
+    <ul class="list-unstyled row g-2 mb-0">
+        {% for step in steps %}
+        <li class="col-md-6">
+            <div class="d-flex align-items-center gap-2 border rounded p-2
+                {% if step.done %}border-success bg-success-soft{% elif step.active %}border-primary bg-primary-soft{% endif %}">
+                <span class="workflow-icon
+                    {% if step.done %}bg-success text-white{% elif step.active %}bg-primary text-white{% else %}bg-light text-muted{% endif %}">
+                    <i class="bi {% if step.done %}bi-check2{% else %}{{ step.icon }}{% endif %}"></i>
+                </span>
+                <div class="small lh-sm">
+                    <div class="fw-semibold">{{ step.label }}</div>
+                    {% if step.detail %}<div class="text-muted small">{{ step.detail }}</div>{% endif %}
+                </div>
+                {% if step.action %}
+                    <a href="{{ step.action.0 }}" class="btn btn-sm btn-outline-primary ms-auto">{{ step.action.1 }}</a>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+        <div class="d-flex align-items-center gap-2 border rounded p-2 border-success bg-success-soft">
+            <span class="workflow-icon bg-success text-white"><i class="bi bi-check2"></i></span>
+            <div class="small lh-sm">
+                <div class="fw-semibold">All steps complete</div>
+                <div class="text-muted small">This applicant is fully enrolled.</div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endwith %}

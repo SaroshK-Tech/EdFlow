@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.username %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.role %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.first_name %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.last_name %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.email %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.phone %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.password1 %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.password2 %}
+                </div>
+                <div class="col-12">
+                    <div class="form-check form-check-inline">
+                        {{ form.is_staff }}
+                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">Can access Django admin backend</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">Account active</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save User</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

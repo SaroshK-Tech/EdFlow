@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Overall Performance</span>
+                <span class="small text-muted">vs exam type / term</span>
+            </div>
+            <div class="card-body">
+                {% if exam_labels and overall_values != "[]" %}
+                    <canvas id="overallChart" height="180"></canvas>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-bar-chart"></i>
+                        <p>No examination results yet. Publish results from the Exams module to build this chart.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Subject Comparison</span>
+                <span class="small text-muted">one line per subject</span>
+            </div>
+            <div class="card-body">
+                {% if subject_names and subject_names != "[]" %}
+                    <canvas id="subjectChart" height="220"></canvas>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-journal-text"></i>
+                        <p>No subject marks yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Teacher Remarks</span></div>
+            <div class="card-body">
+                {% if remarks %}
+                    <ul class="list-group list-group-flush">
+                    {% for r in remarks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-start px-0">
+                            <div>{{ r.text }}</div>
+                            <span class="badge text-bg-light ms-2">{{ r.exam }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted small mb-0">No teacher remarks logged yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card mb-3">
+            <div class="card-header"><span class="fw-semibold">Attendance Correlation</span></div>
+            <div class="card-body">
+                {% if attendance_available %}
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="stat-tile-value" style="font-size: 1.8rem;">{{ attendance.avg|default:"—" }}{% if attendance.avg is not None %}%{% endif %}</div>
+                            <div class="small text-muted">Avg present</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-tile-value" style="font-size: 1.8rem;">{{ attendance.days }}</div>
+                            <div class="small text-muted">Days recorded</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-tile-value" style="font-size: 1.8rem;">
+                                {% if attendance.today_present %}<i class="bi bi-check-circle-fill text-success"></i>{% else %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+                            </div>
+                            <div class="small text-muted">Present today</div>
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-0">Attendance module not available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Recent Progress Records</span>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'progress:records' student.pk %}">All {{ record_count }}</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                {% for r in records %}
+                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                        <div>
+                            <span class="badge text-bg-light">{{ r.get_category_display }}</span>
+                            {% if r.subject %}<span class="badge text-bg-primary">{{ r.subject }}</span>{% endif %}
+                            <div class="small text-muted mt-1">{{ r.remark|default:"—"|truncatechars:70 }}</div>
+                        </div>
+                        <span class="badge text-bg-{% if r.score >= 60 %}success{% elif r.score >= 40 %}warning{% else %}danger{% endif %}">{{ r.score }}%</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted small">No progress records yet.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="d-grid gap-2">
+            <a class="btn btn-primary" href="{% url 'progress:add' %}?student={{ student.pk }}"><i class="bi bi-plus-lg me-1"></i>Add Progress Record</a>
+            <a class="btn btn-outline-secondary" href="{% url 'progress:pdf' student.pk %}" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>Download Progress Report (PDF)</a>
+            <a class="btn btn-outline-secondary" href="{% url 'discipline:student' student.pk %}"><i class="bi bi-alert-triangle me-1"></i>Behaviour History</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+{{ exam_labels|json_script:"exam-labels" }}
+{{ overall_values|json_script:"overall-values" }}
+{{ subject_names|json_script:"subject-names" }}
+{{ subject_series|json_script:"subject-series" }}
+<script>
+(function () {
+    if (window.Chart === undefined) return;
+    var labels = JSON.parse(document.getElementById("exam-labels").textContent);
+    var overall = JSON.parse(document.getElementById("overall-values").textContent);
+
+    var overallCanvas = document.getElementById("overallChart");
+    if (overallCanvas && overall.some(function (v) { return v !== null; })) {
+        new Chart(overallCanvas, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Overall %",
+                    data: overall,
+                    borderColor: "#059669",
+                    backgroundColor: "rgba(5,150,105,.15)",
+                    fill: true,
+                    tension: 0.25,
+                    pointBackgroundColor: "#047857"
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    }
+
+    var names = JSON.parse(document.getElementById("subject-names").textContent);
+    var series = JSON.parse(document.getElementById("subject-series").textContent);
+    var subjectCanvas = document.getElementById("subjectChart");
+    if (subjectCanvas && names.length) {
+        var palette = ["#059669", "#2563eb", "#f59e0b", "#ef4444", "#8b5cf6", "#0ea5e9"];
+        new Chart(subjectCanvas, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: names.map(function (name, i) {
+                    return {
+                        label: name,
+                        data: series[i] || [],
+                        borderColor: palette[i % palette.length],
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        tension: 0.25
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: "bottom" } },
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

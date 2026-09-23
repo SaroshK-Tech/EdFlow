@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'payroll:list' %}"><i class="bi bi-arrow-left me-1"></i>Payroll Runs</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small" for="rep-month">Month</label>
+                <select name="month" id="rep-month" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for value, label in month_choices %}
+                        <option value="{{ value }}" {% if value == month %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small" for="rep-year">Year</label>
+                <select name="year" id="rep-year" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for y in year_choices %}
+                        <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-files"></i></span>
+            <div><div class="stat-value">{{ run_count }}</div><div class="stat-label">Runs</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-people"></i></span>
+            <div><div class="stat-value">{{ totals.employees|default:0 }}</div><div class="stat-label">Employees</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-arrow-up-short"></i></span>
+            <div><div class="stat-value">{{ totals.gross|floatformat:2|default:"0.00" }}</div><div class="stat-label">Gross</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-plus-circle"></i></span>
+            <div><div class="stat-value">{{ totals.allowances|floatformat:2|default:"0.00" }}</div><div class="stat-label">Allowances</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-danger-soft"><i class="bi bi-minus-circle"></i></span>
+            <div><div class="stat-value">{{ totals.deductions|floatformat:2|default:"0.00" }}</div><div class="stat-label">Deductions</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-wallet2"></i></span>
+            <div><div class="stat-value">{{ totals.net|floatformat:2|default:"0.00" }}</div><div class="stat-label">Net Pay</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Per-Department Breakdown — {{ month_name }} {{ year }}</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Employees</th>
+                        <th>Gross</th>
+                        <th>Allowances</th>
+                        <th>Deductions</th>
+                        <th>Net</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for dept in departments %}
+                    <tr>
+                        <td class="fw-semibold">{{ dept.staff__department__name|default:"—" }}</td>
+                        <td><span class="badge text-bg-light">{{ dept.employees }}</span></td>
+                        <td>{{ dept.gross|floatformat:2 }}</td>
+                        <td class="text-success">+ {{ dept.allowances|floatformat:2 }}</td>
+                        <td class="text-danger">− {{ dept.deductions|floatformat:2 }}</td>
+                        <td class="fw-semibold">{{ dept.net|floatformat:2 }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-bar-chart"></i>
+                            {% if run_count %}No pay slips yet for {{ month }}/{{ year }}.{% else %}No payroll runs for {{ month }}/{{ year }}.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

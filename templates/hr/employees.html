@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-primary" href="{% url 'hr:designations' %}"><i class="bi bi-person-badge me-1"></i>Designations</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:leaves' %}"><i class="bi bi-calendar-check me-1"></i>Leaves</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:leave_balances' %}"><i class="bi bi-pie-chart me-1"></i>Leave Balances</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:staff_attendance' %}"><i class="bi bi-clipboard-check me-1"></i>Staff Attendance</a>
+        <a class="btn btn-primary" href="{% url 'staff:add' %}"><i class="bi bi-plus-lg me-1"></i>Add Staff</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            {% include "partials/search_box.html" with filter_params=filter_params %}
+            <form method="get" class="d-flex flex-wrap align-items-center gap-1">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <select name="department" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.pk }}" {% if current_department == dept.pk|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="designation" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All designations</option>
+                    {% for desg in designations %}
+                        <option value="{{ desg.name }}" {% if current_designation == desg.name %}selected{% endif %}>{{ desg.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Joined</th>
+                        <th>Salary</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for employee in employees %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ employee.employee_code }}</span></td>
+                        <td class="fw-semibold">
+                            {{ employee.full_name }}
+                            {% if employee.is_teacher %}<span class="badge text-bg-primary ms-1">Teacher</span>{% endif %}
+                        </td>
+                        <td>{{ employee.designation|default:"—" }}</td>
+                        <td>{{ employee.department|default:"—" }}</td>
+                        <td>{{ employee.joining_date|default:"—" }}</td>
+                        <td class="fw-semibold">{{ employee.salary }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if employee.status == 'active' %}success{% elif employee.status == 'left' %}secondary{% else %}danger{% endif %}">{{ employee.get_status_display }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'hr:employee_detail' employee.pk %}" class="btn btn-sm btn-outline-secondary" title="Profile"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'hr:employee_edit' employee.pk %}" class="btn btn-sm btn-outline-primary" title="HR Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-person-badge"></i>
+                            {% if q or current_department or current_designation or current_status %}No employees match the current filter.{% else %}No employees yet — add staff to build the directory.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="small text-muted">{{ employees|length }} displayed</span>
+            {% include "partials/pagination.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        {% if subtitle %}<p class="page-subtitle mb-0">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if primary_label and primary_url %}
+        {% if primary_url|slice:":1" == "/" or primary_url|slice:":4" == "http" %}
+            <div>
+                <a class="btn btn-primary" href="{{ primary_url }}"><i class="bi bi-plus-lg me-1"></i>{{ primary_label }}</a>
+            </div>
+        {% else %}
+            {% if primary_url_args %}
+                {% url primary_url primary_url_args as header_href %}
+            {% else %}
+                {% url primary_url as header_href %}
+            {% endif %}
+            <div>
+                <a class="btn btn-primary" href="{{ header_href|default:primary_url }}"><i class="bi bi-plus-lg me-1"></i>{{ primary_label }}</a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

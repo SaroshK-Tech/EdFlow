@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Driver" primary_url="transport:driver_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ drivers|length }} displayed</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Licence No.</th>
+                        <th>Licence Expiry</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for driver in drivers %}
+                    <tr>
+                        <td class="fw-semibold">{{ driver.name }}</td>
+                        <td>{{ driver.phone|default:"—" }}</td>
+                        <td>{{ driver.license_number|default:"—" }}</td>
+                        <td>
+                            {% if driver.license_expiry %}
+                                {{ driver.license_expiry|date:"d M Y" }}
+                                {% if driver.license_expiry < today %}
+                                    <span class="badge text-bg-danger ms-1">Expired</span>
+                                {% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <span class="badge text-bg-{% if driver.status == 'active' %}success{% else %}secondary{% endif %}">{{ driver.get_status_display }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'transport:driver_edit' driver.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-person-vcard"></i>
+                            {% if q %}No drivers match "{{ q }}".{% else %}No drivers yet — add your transport drivers.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+{% for warning in summary.warnings %}
+    <div class="alert alert-warning"><i class="bi bi-exclamation-triangle me-1"></i>{{ warning }}</div>
+{% endfor %}
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-2 mb-3">
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center bg-success bg-opacity-10">
+                <h3 class="mb-0 text-success">{{ summary.valid }}</h3>
+                <div class="small text-muted">Ready to import</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center bg-danger bg-opacity-10">
+                <h3 class="mb-0 text-danger">{{ summary.error }}</h3>
+                <div class="small text-muted">Rows with errors</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded p-3 text-center">
+                <h3 class="mb-0">{{ summary.row_count }}</h3>
+                <div class="small text-muted">Total data rows</div>
+            </div>
+        </div>
+    </div>
+
+    {% if error_rows %}
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-exclamation-circle text-danger me-1"></i>Rows with errors (not imported)</div>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>Name</th>
+                            <th>Admission</th>
+                            <th>Class</th>
+                            <th>Error(s)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in error_rows %}
+                        <tr>
+                            <td>{{ row.row_number }}</td>
+                            <td>{{ row.data.first_name }} {{ row.data.last_name }}</td>
+                            <td>{{ row.data.admission_number|default:"—" }}</td>
+                            <td>{{ row.data.klass|default:"—" }}</td>
+                            <td>
+                                {% for err in row.errors %}
+                                    <span class="badge text-bg-danger text-wrap d-inline-block mb-1">{{ err }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-check-circle text-success me-1"></i>Valid rows ({{ valid_rows|length }})</div>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Row</th>
+                        <th>Admission</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Class / Section</th>
+                        <th>House</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in valid_rows %}
+                    <tr>
+                        <td class="text-muted">{{ row.row_number }}</td>
+                        <td>{{ row.data.admission_number }}</td>
+                        <td>{{ row.data.first_name }} {{ row.data.middle_name }} {{ row.data.last_name }}</td>
+                        <td>{{ row.data.gender|default:"—" }}</td>
+                        <td>{{ row.data.klass|default:"—" }}{% if row.data.section %} / {{ row.data.section }}{% endif %}</td>
+                        <td>{{ row.data.house|default:"—" }}</td>
+                        <td>{{ row.data.phone|default:"—" }}</td>
+                        <td>{{ row.data.email|default:"—" }}</td>
+                        <td>{{ row.data.status|default:"active" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                No valid rows to import.
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'students:import' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Upload another file
+            </a>
+            {% if valid_rows %}
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-download me-1"></i>Import {{ valid_rows|length }} student(s)
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}

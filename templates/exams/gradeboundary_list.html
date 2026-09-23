@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'exams:examtypes' %}"><i class="bi bi-diagram-3 me-1"></i>Exam Types</a>
+        <a class="btn btn-primary" href="{% url 'exams:gradeboundary_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Boundary</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Grade</th>
+                        <th>Range</th>
+                        <th>GPA</th>
+                        <th>Remark</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for b in boundaries %}
+                    <tr>
+                        <td class="fw-semibold">{{ b.name }}</td>
+                        <td>{{ b.min_percentage }}% – {{ b.max_percentage }}%</td>
+                        <td>{{ b.gpa|default:"—" }}</td>
+                        <td class="text-muted">{{ b.remark|default:"—" }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'exams:gradeboundary_edit' b.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'exams:gradeboundary_delete' b.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state"><i class="bi bi-mortarboard"></i>No grade boundaries yet — add one to grade results automatically.</div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

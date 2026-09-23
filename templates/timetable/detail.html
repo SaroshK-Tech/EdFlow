@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-md-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'timetable:index' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h1 class="h4 mb-1">{{ page_title }}</h1>
+            <p class="text-muted mb-0">{{ page_subtitle }}</p>
+        </div>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+        {% if timetable.status == 'draft' %}
+            <form method="post" action="{% url 'timetable:approve' timetable.pk %}">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-success"><i class="bi bi-check-lg me-1"></i>Approve</button></form>
+        {% endif %}
+        {% if timetable.status != 'archived' %}
+            <form method="post" action="{% url 'timetable:publish' timetable.pk %}">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-warning"><i class="bi bi-send me-1"></i>Publish</button></form>
+            <form method="post" action="{% url 'timetable:archive' timetable.pk %}">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-archive me-1"></i>Archive</button></form>
+        {% endif %}
+        <a href="{% url 'timetable:print' timetable.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-printer me-1"></i>Print</a>
+    </div>
+</div>
+
+{% if conflicts %}
+    <div class="alert alert-danger d-flex gap-2 align-items-start">
+        <i class="bi bi-shield-exclamation mt-1"></i>
+        <div>
+            <strong>{{ conflicts|length }} conflict{{ conflicts|length|pluralize }} detected.</strong> Re-generate the
+            timetable or fix the offending cells manually.
+            <ul class="small mb-0 mt-1">
+                {% for conflict in conflicts %}
+                    <li><span class="badge text-bg-danger">{{ conflict.kind }}</span>
+                    {{ conflict.get_weekday_display }} {{ conflict.period }} — {{ conflict.detail }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endif %}
+
+<ul class="nav nav-pills mb-3">
+    {% for key, label in tab_choices %}
+        <li class="nav-item">
+            <a class="nav-link {% if tab == key %}active{% endif %}" href="{% url 'timetable:detail' timetable.pk %}?tab={{ key }}">
+                {{ label }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% if tab == 'master' %}
+    <div class="card">
+        <div class="card-header fw-semibold">Master timetable — {{ entries_total }} entries</div>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle small mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-start">Class</th>
+                        {% for day in day_defs %}<th class="text-center">{{ day.label }}</th>{% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in master_rows %}
+                    <tr>
+                        <td class="fw-semibold text-nowrap">{{ row.klass.name }}</td>
+                        {% for cell in row.cells %}
+                            <td>
+                                {% for item in cell.items %}
+                                    <div class="mb-1 p-1 rounded border-start border-3 {% if item.is_locked %}border-warning{% else %}border-primary{% endif %}">
+                                        <div class="fw-semibold">{{ item.subject.name }}</div>
+                                        <div class="text-muted">{{ item.get_weekday_display }} P{{ item.period.order }} · {{ item.teacher.full_name }} · {{ item.room.name }}</div>
+                                    </div>
+                                {% empty %}
+                                    <span class="text-muted">—</span>
+                                {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="{{ day_defs|length|add:1 }}"><div class="empty-state">No entries in this timetable.</div></td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="card mb-3">
+        <div class="card-body d-flex flex-wrap align-items-center gap-3 py-2">
+            <span class="fw-semibold small text-uppercase text-muted">
+                {% if tab == 'teacher' %}Teacher{% elif tab == 'room' %}Room{% else %}Class{% endif %}
+            </span>
+            {% if tab == 'class' %}
+                <select class="form-select form-select-sm" style="max-width:260px" onchange="location.href='{% url 'timetable:detail' timetable.pk %}?tab=class&oid='+this.value">
+                    <option value="">Select…</option>
+                    {% for c in classes_opts %}
+                        <option value="{{ c.pk }}" {% if selected.pk == c.pk %}selected{% endif %}>{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            {% elif tab == 'teacher' %}
+                <select class="form-select form-select-sm" style="max-width:300px" onchange="location.href='{% url 'timetable:detail' timetable.pk %}?tab=teacher&oid='+this.value">
+                    <option value="">Select…</option>
+                    {% for t in teachers_opts %}
+                        <option value="{{ t.pk }}" {% if selected.pk == t.pk %}selected{% endif %}>{{ t.full_name }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <select class="form-select form-select-sm" style="max-width:260px" onchange="location.href='{% url 'timetable:detail' timetable.pk %}?tab=room&oid='+this.value">
+                    <option value="">Select…</option>
+                    {% for r in rooms_opts %}
+                        <option value="{{ r.pk }}" {% if selected.pk == r.pk %}selected{% endif %}>{{ r.name }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            {% if grid_rows %}
+                <span class="small text-muted">Showing <strong>{{ selected }}</strong></span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not has_entries %}
+        <div class="card"><div class="card-body"><div class="empty-state"><i class="bi bi-calendar2-week"></i>This timetable has no entries yet.</div></div></div>
+    {% else %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">{% if tab == 'teacher' %}Teacher{% elif tab == 'room' %}Room{% else %}Class{% endif %} grid</span>
+                <span class="small text-muted">Drag a lesson onto another slot to move it; drop on an occupied slot to swap.</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle small mb-0" data-timetable-id="{{ timetable.pk }}" data-class-id="{{ selected.pk|default:'' }}">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-start">Periods</th>
+                            {% for day in day_defs %}<th class="text-center">{{ day.label }}</th>{% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in grid_rows %}
+                        <tr>
+                            <td class="text-nowrap fw-semibold">
+                                P{{ row.period.order }}
+                                <div class="text-muted small fw-normal">{{ row.period.start_time|time:"H:i" }}–{{ row.period.end_time|time:"H:i" }}</div>
+                            </td>
+                            {% for cell in row.cells %}
+                                <td class="p-1 tt-drop {% if cell.entry %}{% if cell.entry.is_locked %}tt-locked{% endif %}{% else %}tt-empty{% endif %}"
+                                    data-day="{{ cell.day }}" data-period="{{ row.period.pk }}"
+                                    {% if cell.entry %}data-entry-id="{{ cell.entry.pk }}"{% endif %}
+                                    style="min-width:170px">
+                                    {% if cell.entry %}
+                                        <div class="rounded p-2 border-start border-3 {% if cell.entry.is_locked %}border-warning{% else %}border-primary tt-draggable{% endif %}"
+                                             {% if not cell.entry.is_locked %}
+                                             draggable="true"
+                                             data-entry-id="{{ cell.entry.pk }}"
+                                             data-subject="{{ cell.entry.subject.name }}"
+                                             {% endif %}>
+                                            <div class="fw-semibold">{{ cell.entry.subject.name }}</div>
+                                            <div class="text-muted">{{ cell.entry.teacher.full_name }} · {{ cell.entry.room.name }}</div>
+                                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                                <span class="small text-muted">
+                                                    {% if cell.entry.is_locked %}
+                                                        <span class="badge text-bg-warning"><i class="bi bi-lock"></i> locked</span>
+                                                    {% else %}
+                                                        <span class="badge text-bg-light border">editable</span>
+                                                    {% endif %}
+                                                </span>
+                                                {% if cell.entry.is_locked %}
+                                                    <form method="post" action="{% url 'timetable:unlock_cell' cell.entry.pk %}">{% csrf_token %}
+                                                        <button class="btn btn-sm btn-outline-secondary py-0" title="Unlock"><i class="bi bi-unlock"></i></button>
+                                                    </form>
+                                                {% else %}
+                                                    <form method="post" action="{% url 'timetable:lock_cell' cell.entry.pk %}">{% csrf_token %}
+                                                        <button class="btn btn-sm btn-outline-warning py-0" title="Lock (preserve on regeneration)"><i class="bi bi-lock"></i></button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="{{ day_defs|length|add:1 }}"><div class="empty-state">Nothing scheduled yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if selected %}
+        {% include "timetable/partials/cell_form.html" %}
+    {% endif %}
+
+    {% if timetable.status != 'archived' %}
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-arrow-repeat me-1"></i>Selective regeneration</span></div>
+            <div class="card-body">
+                <p class="small text-muted">
+                    Re-run the CP-SAT solver for only the classes, teachers or days you pick.
+                    Locked cells and everything outside the selection are preserved.
+                </p>
+                <form method="post" action="{% url 'timetable:regenerate' timetable.pk %}" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">{{ regenerate_form.classes.label }}</label>
+                        <select name="classes" class="form-select form-select-sm" multiple size="5">
+                            {% for c in all_classes %}
+                                <option value="{{ c.pk }}" {% if selected.pk == c.pk and tab == 'class' %}selected{% endif %}>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">{{ regenerate_form.teachers.label }}</label>
+                        <select name="teachers" class="form-select form-select-sm" multiple size="5">
+                            {% for t in all_teachers %}
+                                <option value="{{ t.pk }}" {% if selected.pk == t.pk and tab == 'teacher' %}selected{% endif %}>{{ t.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted">{{ regenerate_form.days.label }}</label>
+                        <div>
+                            {% for value, label in weekday_choices %}
+                                <div class="form-check form-check-inline me-2">
+                                    <input class="form-check-input" type="checkbox" name="days" value="{{ value }}" id="regen-day-{{ value }}">
+                                    <label class="form-check-label small" for="regen-day-{{ value }}">{{ label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2">
+                            <label class="form-label small text-muted">Max seconds</label>
+                            <input type="number" name="max_seconds" class="form-control form-control-sm" value="30" min="1" max="300">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted">Note</label>
+                        <textarea name="note" class="form-control form-control-sm" rows="2" placeholder="Why is this being regenerated?"></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-sm btn-outline-info"><i class="bi bi-arrow-repeat me-1"></i>Regenerate selection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+    var drag;
+    document.querySelectorAll('.tt-draggable').forEach(function (el) {
+        el.addEventListener('dragstart', function (e) {
+            drag = el.closest('td');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', el.dataset.entryId);
+            el.style.opacity = '0.4';
+        });
+        el.addEventListener('dragend', function () {
+            el.style.opacity = '';
+            document.querySelectorAll('.tt-drop').forEach(function (td) {
+                td.classList.remove('table-success');
+            });
+        });
+    });
+    document.querySelectorAll('.tt-drop').forEach(function (td) {
+        td.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            if (!drag || td.classList.contains('tt-locked')) return;
+            td.classList.add('table-success');
+        });
+        td.addEventListener('dragleave', function () { td.classList.remove('table-success'); });
+        td.addEventListener('drop', function (e) {
+            e.preventDefault();
+            td.classList.remove('table-success');
+            if (!drag) return;
+            var srcDay = drag.dataset.day;
+            var srcPeriod = drag.dataset.period;
+            var dstDay = td.dataset.day;
+            var dstPeriod = td.dataset.period;
+            if (srcDay === dstDay && srcPeriod === dstPeriod) return;
+            var form = document.createElement('form');
+            form.method = 'post';
+            form.action = "{% url 'timetable:move_cell' timetable.pk %}";
+            var csrf = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            var h = function (n, v) {
+                var i = document.createElement('input');
+                i.type = 'hidden'; i.name = n; i.value = v;
+                form.appendChild(i);
+            };
+            h('csrfmiddlewaretoken', csrf);
+            h('entry', drag.querySelector('.tt-draggable').dataset.entryId);
+            h('move_to_day', dstDay);
+            h('move_to_period', dstPeriod);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    });
+})();
+</script>
+{% endblock %}

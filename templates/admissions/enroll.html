@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Back" primary_url="admissions:detail" primary_url_args=inquiry.pk %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <i class="bi bi-info-circle me-1"></i>
+            This creates a <strong>student record</strong> for <strong>{{ inquiry.applicant_name }}</strong>,
+            assigns an admission number and section, links the guardian, and can generate a fee voucher
+            from the currently active fee heads.
+        </div>
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+                {% for field in form %}
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                    {% for err in field.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success"><i class="bi bi-person-check me-1"></i>Enroll Student</button>
+                <a href="{% url 'admissions:detail' inquiry.pk %}" class="btn btn-light">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

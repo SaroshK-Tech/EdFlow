@@ -1,0 +1,1284 @@
+Project Name: "EdFlow By AlgoriSync"
+
+============================================================
+1. PROJECT OVERVIEW
+============================================================
+
+Build a complete, professional School Management System designed
+initially as a completely offline-first application for a single school.
+
+The system must provide one integrated solution for school
+administration, students, parents, teachers, staff, academics,
+attendance, timetable, examinations, fees, HR, transport, library,
+inventory, communication, reporting, security, and backups.
+
+The first version does NOT require campus or branch management.
+
+The system should work on a local school network (LAN/Wi-Fi) without
+requiring the Internet for its core functionality.
+
+Internet connectivity should only add optional capabilities such as
+WhatsApp, email, cloud services, or online integrations.
+
+The architecture should remain modular so that multi-campus,
+multi-school, cloud/SaaS, mobile applications, and other future
+features can be added later without rebuilding the entire system.
+
+============================================================
+2. PRIMARY DESIGN PRINCIPLE
+============================================================
+
+OFFLINE FIRST.
+
+Everything required for normal school operations must work without
+Internet access.
+
+Examples of offline functionality:
+
+- Student management
+- Parent/guardian management
+- Admissions
+- Classes and sections
+- Teachers and staff
+- Student attendance
+- Staff attendance
+- Biometric attendance
+- Timetable
+- Automatic timetable generation
+- Exams
+- Marks
+- Results
+- Report cards
+- Student progress
+- Fees
+- Fee collection
+- Payroll
+- Library
+- Transport
+- Houses
+- Discipline
+- Inventory
+- Internal messaging
+- Reports
+- PDF generation
+- Backups
+- Restore
+
+Internet-dependent features should be optional:
+
+- WhatsApp
+- Email
+- Cloud backup
+- Online payments
+- Cloud AI
+- External APIs
+- SMS API services
+
+============================================================
+3. SCHOOL STRUCTURE
+============================================================
+
+The initial version represents ONE SCHOOL.
+
+Do NOT implement campuses, branches, or multi-tenant SaaS functionality
+in V1.
+
+The school should contain:
+
+- School profile
+- Academic years
+- Terms
+- Classes
+- Sections
+- Subjects
+- Departments
+- Rooms
+- Teachers
+- Staff
+- Students
+- Parents/guardians
+- Houses
+- Academic settings
+- Working days
+- Periods
+- Breaks
+- Holidays
+
+The architecture should remain extensible for future multi-school or
+multi-campus functionality.
+
+============================================================
+4. USER ROLES & ACCESS CONTROL
+============================================================
+
+Implement role-based access control with granular permissions.
+
+Potential roles:
+
+- Super Administrator
+- School Administrator
+- Principal
+- Vice Principal
+- Academic Coordinator
+- Teacher
+- Class Teacher
+- Accountant
+- HR Manager
+- Librarian
+- Transport Manager
+- Receptionist
+- Admission Officer
+- Parent
+- Student
+- Staff
+- Custom Roles
+
+Permissions should control:
+
+- View
+- Create
+- Edit
+- Delete
+- Approve
+- Export
+- Print
+- Manage
+- Configure
+
+Maintain audit logs for important operations.
+
+============================================================
+5. STUDENT MANAGEMENT
+============================================================
+
+Provide a complete Student 360-degree profile.
+
+Student information should include:
+
+- Student ID
+- Admission number
+- Registration number
+- Full name
+- Photograph
+- Date of birth
+- Gender
+- Blood group
+- Contact information
+- Address
+- Parent/guardian information
+- Emergency contacts
+- Admission details
+- Class
+- Section
+- House
+- Roll number
+- Previous school
+- Medical information
+- Documents
+- Attendance
+- Examination results
+- Progress records
+- Homework
+- Discipline records
+- Fee history
+- Transport assignment
+- Library records
+- Certificates
+- Remarks
+
+Provide student search, filtering, import, export, printing, and
+document generation.
+
+============================================================
+6. PARENT / GUARDIAN MANAGEMENT
+============================================================
+
+Maintain parent/guardian profiles with:
+
+- Father information
+- Mother information
+- Guardian information
+- Contact numbers
+- WhatsApp numbers
+- Email
+- Address
+- Occupation
+- Emergency contact
+- Relationship with student
+
+One parent/guardian should be able to have multiple children.
+
+============================================================
+7. ADMISSIONS
+============================================================
+
+Complete admission workflow:
+
+- Admission inquiry
+- Application
+- Applicant profile
+- Document collection
+- Interview/test
+- Approval/rejection
+- Admission number generation
+- Class/section assignment
+- Fee setup
+- Student enrollment
+- Admission receipt
+- Student ID card
+- Admission reports
+
+============================================================
+8. ACADEMICS
+============================================================
+
+Manage:
+
+- Academic years
+- Terms
+- Classes
+- Sections
+- Subjects
+- Curriculum
+- Syllabus
+- Subject allocation
+- Teacher allocation
+- Learning objectives
+- Homework
+- Assignments
+- Lesson planning
+- Academic calendar
+
+============================================================
+9. AUTOMATIC TIMETABLE GENERATOR
+============================================================
+
+A major feature must be a ONE-CLICK automatic timetable generator.
+
+The system must generate a complete timetable automatically using a
+built-in offline scheduling engine.
+
+The generator should consider:
+
+HARD CONSTRAINTS:
+- No teacher double booking
+- No class/section double booking
+- No room double booking
+- Teacher availability
+- Class availability
+- Room availability
+- Required subject periods
+- Lab requirements
+- Special room requirements
+- School working days
+- Break periods
+
+SOFT CONSTRAINTS / PREFERENCES:
+- Preferred subject periods
+- Difficult subjects earlier in the day
+- PE preferences
+- Laboratory preferences
+- Maximum consecutive teacher periods
+- Maximum consecutive class periods
+- Teacher free periods
+- Balanced subject distribution
+- Avoid unnecessary gaps
+- School-specific preferences
+
+The system must generate simultaneously:
+
+- Class timetable
+- Section timetable
+- Teacher timetable
+- Room timetable
+- Subject timetable
+- Free-period timetable
+- Master timetable
+
+TIMETABLE WORKFLOW:
+
+1. Configure academic structure
+2. Configure teachers
+3. Configure subjects
+4. Configure rooms
+5. Configure periods
+6. Configure teacher availability
+7. Configure subject requirements
+8. Configure school preferences
+9. Click "Generate Timetable"
+10. Validate constraints
+11. Optimize schedule
+12. Show conflicts, if any
+13. Allow review
+14. Approve
+15. Publish
+
+The system should allow:
+
+- Locking existing timetable entries
+- Regenerating only selected classes
+- Regenerating selected teachers
+- Regenerating selected days
+- Manual drag-and-drop editing
+- Immediate conflict detection
+- Timetable versioning
+- Draft timetable
+- Approved timetable
+- Published timetable
+- Archived versions
+- Change history
+
+TECHNOLOGY:
+
+Use Google OR-Tools CP-SAT as the primary deterministic offline
+constraint solver.
+
+AI must NOT be required for timetable generation.
+
+Optional future local AI can convert natural-language instructions into
+structured timetable preferences.
+
+Example:
+
+"Generate timetable for Grades 6 to 10. Keep Math and Science before
+lunch, PE in the last two periods, and do not assign more than three
+consecutive periods to a teacher."
+
+The AI layer can interpret this instruction, but OR-Tools remains the
+actual scheduling engine.
+
+============================================================
+10. STUDENT PROGRESS TRACKING
+============================================================
+
+Track student development over time:
+
+- Subject performance
+- Assessment results
+- Learning outcomes
+- Skills
+- Strengths
+- Weak areas
+- Teacher remarks
+- Attendance correlation
+- Homework performance
+- Assignment performance
+- Behavior
+- Improvement history
+- Term comparison
+- Year comparison
+
+Provide graphical progress reports.
+
+============================================================
+11. ATTENDANCE
+============================================================
+
+STUDENT ATTENDANCE:
+
+- Daily attendance
+- Period attendance
+- Present
+- Absent
+- Late
+- Leave
+- Excused absence
+- Attendance percentage
+- Class attendance
+- Subject attendance
+- Monthly reports
+- Annual reports
+
+STAFF ATTENDANCE:
+
+- Daily attendance
+- Check-in/check-out
+- Late arrival
+- Early departure
+- Leave
+- Overtime
+- Attendance reports
+
+HARDWARE SUPPORT:
+
+- Fingerprint
+- Face recognition
+- RFID
+- QR/barcode
+- Biometric devices
+
+Hardware should operate through the local network wherever possible.
+
+============================================================
+12. SMS & WHATSAPP COMMUNICATION
+============================================================
+
+The system must support an offline-first communication architecture.
+
+A local Android Communication Gateway can be connected to the school
+computer/server.
+
+Example architecture:
+
+Django School System
+        |
+        | Local API / USB / LAN
+        v
+Android Communication Gateway
+        |
+        +---- SIM ---- SMS
+        |
+        +---- Internet ---- WhatsApp
+
+SMS can be sent using a SIM installed in the Android device.
+
+This avoids making the core system dependent on an external SMS API.
+
+For WhatsApp, the Android gateway may be used where technically and
+operationally appropriate. WhatsApp itself requires Internet access.
+
+Do not make the entire school system dependent on WhatsApp.
+
+COMMUNICATION QUEUE:
+
+Every outbound message should have:
+
+- Recipient
+- Message
+- Message type
+- Template
+- Priority
+- Created time
+- Scheduled time
+- Status
+- Attempt count
+- Sent time
+- Failure reason
+- Gateway device
+
+Statuses:
+
+- Pending
+- Processing
+- Sent
+- Failed
+- Cancelled
+- Scheduled
+
+The system should retry failed messages where appropriate.
+
+============================================================
+13. COMMUNICATION TEMPLATES
+============================================================
+
+Provide templates for:
+
+- Student absent
+- Late arrival
+- Fee reminder
+- Fee overdue
+- Result announcement
+- PTM reminder
+- Homework
+- Assignment
+- Exam reminder
+- Holiday notice
+- Emergency announcement
+- Admission confirmation
+- Transport notification
+- Staff notification
+- General announcement
+
+Allow administrators to customize templates.
+
+============================================================
+14. EXAMS & RESULTS
+============================================================
+
+Provide:
+
+- Exam types
+- Exams
+- Subjects
+- Marks
+- Grades
+- Grade boundaries
+- Weightage
+- Class positions
+- Subject positions
+- GPA/percentage where applicable
+- Teacher remarks
+- Result approval
+- Result publishing
+- Report cards
+- Result sheets
+- Tabulation sheets
+- Progress reports
+
+Generate professional printable PDFs.
+
+============================================================
+15. FEES & FINANCE
+============================================================
+
+Provide:
+
+- Fee structures
+- Monthly fees
+- Admission fees
+- Exam fees
+- Transport fees
+- Library fees
+- Other charges
+- Discounts
+- Scholarships
+- Concessions
+- Student invoices
+- Fee collection
+- Receipts
+- Outstanding fees
+- Defaulters
+- Payment history
+- Refunds
+- Expenses
+- Financial reports
+
+Support:
+
+- Cash
+- Bank
+- Other configurable payment methods
+
+Online payment should remain optional and must not be required for
+offline operation.
+
+============================================================
+16. HR & PAYROLL
+============================================================
+
+Employee management:
+
+- Employee profiles
+- Departments
+- Designations
+- Joining date
+- Documents
+- Qualifications
+- Experience
+- Salary
+- Allowances
+- Deductions
+- Leave
+- Attendance
+- Payroll
+- Salary slips
+- Payroll reports
+
+============================================================
+17. HOUSE SYSTEM
+============================================================
+
+Support school houses:
+
+- House creation
+- House colors
+- House captain
+- Vice captain
+- Student assignment
+- Staff coordinator
+- House points
+- Activities
+- Competitions
+- Attendance
+- Achievements
+- House leaderboard
+
+============================================================
+18. DISCIPLINE & BEHAVIOR
+============================================================
+
+Maintain:
+
+- Incidents
+- Warnings
+- Actions
+- Teacher remarks
+- Parent communication
+- Follow-up
+- Behavior history
+- Positive achievements
+
+============================================================
+19. HOMEWORK & ASSIGNMENTS
+============================================================
+
+Teachers should be able to:
+
+- Create homework
+- Create assignments
+- Set deadlines
+- Attach documents
+- Assign to classes/sections
+- Track submission
+- Grade work
+- Add remarks
+
+============================================================
+20. LIBRARY
+============================================================
+
+Provide:
+
+- Books
+- Authors
+- Categories
+- Publishers
+- ISBN
+- Book copies
+- Members
+- Issue
+- Return
+- Renew
+- Fine
+- Lost/damaged book
+- Search
+- Reports
+
+Barcode support should be possible.
+
+============================================================
+21. TRANSPORT
+============================================================
+
+Provide:
+
+- Vehicles
+- Drivers
+- Routes
+- Stops
+- Student assignment
+- Staff assignment
+- Vehicle capacity
+- Transport fees
+- Driver documents
+- Route reports
+
+Future extension:
+
+- GPS tracking
+- Live vehicle location
+- Parent notifications
+
+Core transport records must work offline.
+
+============================================================
+22. INVENTORY & ASSETS
+============================================================
+
+Manage:
+
+- Inventory items
+- Categories
+- Stock
+- Suppliers
+- Purchases
+- Issues
+- Returns
+- Assets
+- Asset locations
+- Asset assignment
+- Maintenance
+- Disposal
+- Stock reports
+
+============================================================
+23. DOCUMENTS & CERTIFICATES
+============================================================
+
+Generate:
+
+- Student ID cards
+- Staff ID cards
+- Admission letters
+- Fee receipts
+- Report cards
+- Certificates
+- Character certificates
+- Leaving certificates
+- Bonafide certificates
+- Result sheets
+- Salary slips
+
+Templates should be configurable.
+
+============================================================
+24. DASHBOARDS & REPORTS
+============================================================
+
+Dashboard should be role-specific.
+
+Examples:
+
+ADMIN:
+- Students
+- Teachers
+- Staff
+- Attendance
+- Fees
+- Admissions
+- Exams
+- Notifications
+- System status
+
+TEACHER:
+- Assigned classes
+- Today's timetable
+- Attendance
+- Homework
+- Assignments
+- Student progress
+- Exams
+
+ACCOUNTANT:
+- Collections
+- Outstanding fees
+- Defaulters
+- Expenses
+- Financial summaries
+
+PRINCIPAL:
+- Attendance overview
+- Academic performance
+- Admissions
+- Finance
+- Staff
+- Discipline
+- Overall school statistics
+
+Reports should support:
+
+- PDF
+- Excel
+- CSV
+- Printing
+- Filtering
+- Date ranges
+
+============================================================
+25. INTERNAL MESSAGING
+============================================================
+
+Provide an internal communication system that works without Internet.
+
+Features:
+
+- Staff messages
+- Teacher messages
+- Admin announcements
+- Class announcements
+- Notifications
+- Read/unread status
+- Message history
+
+============================================================
+26. BACKUP & RESTORE
+============================================================
+
+Backup must be a built-in feature.
+
+Support backups to:
+
+- Local disk
+- USB drive
+- External HDD
+- Network drive
+
+Provide:
+
+- Manual backup
+- Scheduled local backup
+- Backup history
+- Restore
+- Pre-restore safety backup
+- Backup verification
+- Database export
+- Configurable retention
+
+The school must not depend on cloud backup.
+
+============================================================
+27. SECURITY
+============================================================
+
+Implement:
+
+- Secure authentication
+- Password hashing
+- Role-based access control
+- Granular permissions
+- CSRF protection
+- Secure sessions
+- Audit logs
+- Login history
+- Account activation/deactivation
+- Password reset
+- Data validation
+- Database constraints
+- Backup security
+- Local network security recommendations
+
+============================================================
+28. UX/UI REQUIREMENTS
+============================================================
+
+The interface must look like a modern professional school management
+application rather than a basic CRUD administration panel.
+
+Use:
+
+- Responsive Bootstrap 5
+- Clean dashboard
+- Sidebar navigation
+- Top navigation
+- Cards
+- Tables
+- Filters
+- Search
+- Modal dialogs
+- Forms
+- Charts
+- Notifications
+- Status badges
+- Professional typography
+- Consistent spacing
+- Clear empty states
+- Confirmation dialogs
+- Keyboard-friendly workflows
+
+IMPORTANT:
+
+There may be UX/UI suggestions, screenshots, mockups, design references,
+or other UI materials available in a directory within the project.
+
+If such a directory exists, inspect it before implementing the interface.
+
+Those materials should be treated as UX/UI guidance and incorporated
+where appropriate while keeping the final system consistent and
+professional.
+
+============================================================
+29. TECHNOLOGY STACK
+============================================================
+
+BACKEND:
+
+- Python
+- Django
+- Django ORM
+- Django authentication
+- Django REST Framework where API endpoints are required
+
+DATABASE:
+
+Primary production recommendation:
+
+- PostgreSQL
+
+For very small development/prototype environments, SQLite may be used,
+but the production multi-user LAN deployment should preferably use
+PostgreSQL.
+
+FRONTEND:
+
+- Django Templates
+- HTML5
+- CSS3
+- Bootstrap 5
+- JavaScript
+- AJAX/fetch where appropriate
+
+TIMETABLE:
+
+- Google OR-Tools
+- CP-SAT constraint solver
+
+BACKGROUND TASKS:
+
+- Celery
+- Redis
+
+Use Celery/Redis where background processing is required, such as:
+
+- Large report generation
+- Timetable generation
+- Message queue processing
+- Scheduled notifications
+- Backup jobs
+
+REAL-TIME FEATURES:
+
+- Django Channels
+- WebSockets
+
+Possible uses:
+
+- Attendance updates
+- Communication queue
+- Notifications
+- Dashboard updates
+- Timetable changes
+
+DOCUMENTS:
+
+- WeasyPrint and/or ReportLab
+
+EXCEL:
+
+- openpyxl
+
+DATA PROCESSING:
+
+- Pandas
+- NumPy where required
+
+CHARTS:
+
+- Chart.js or another lightweight JavaScript charting library
+
+DEPLOYMENT:
+
+Initial target:
+
+- Windows local server/computer
+- Local LAN/Wi-Fi
+- PostgreSQL
+- Django application
+
+The application should be accessible from school computers through a
+web browser.
+
+============================================================
+30. VIRTUAL ENVIRONMENT
+============================================================
+
+The project MUST use a dedicated Python virtual environment.
+
+Create:
+
+    .venv
+
+The .venv directory is local to each development/deployment machine and
+must NOT be committed to Git/source control.
+
+Create and maintain a root-level:
+
+    requirements.txt
+
+requirements.txt MUST contain all Python dependencies required to install
+and run the project.
+
+Recommended setup:
+
+    python -m venv .venv
+
+Activate on Windows:
+
+    .venv\\Scripts\\activate
+
+Upgrade pip:
+
+    python -m pip install --upgrade pip
+
+Install project requirements:
+
+    pip install -r requirements.txt
+
+When dependencies are added or removed, requirements.txt must be updated.
+
+The project should include an easy Windows setup script, for example:
+
+    setup_windows.bat
+
+The script should:
+
+- Check that Python is installed
+- Create .venv if it does not exist
+- Activate/use the virtual environment
+- Upgrade pip
+- Install requirements.txt
+- Show clear success/error messages
+
+Do NOT copy an existing .venv between computers. Recreate the virtual
+environment from requirements.txt on each deployment machine.
+
+Recommended project structure:
+
+Project Root/
+    .venv/                  # local only; not committed
+    requirements.txt        # mandatory dependency list
+    setup_windows.bat       # easy setup
+    manage.py
+    project/
+    apps/
+    templates/
+    static/
+    media/
+    documentation/
+    backups/
+    .gitignore
+
+============================================================
+31. VERSION CONTROL
+============================================================
+
+Use Git.
+
+.gitignore should exclude:
+
+- .venv/
+- __pycache__/
+- *.pyc
+- .env
+- local secrets
+- generated logs
+- temporary files
+- local database files where applicable
+- generated backups
+- IDE-specific files
+
+Never store production passwords, secret keys, or sensitive credentials
+inside source control.
+
+============================================================
+32. FUTURE LOCAL AI
+============================================================
+
+AI should not be required for V1.
+
+The system must remain fully functional without cloud AI.
+
+Future optional AI can be implemented using a locally hosted model such
+as an Ollama/llama.cpp-compatible model.
+
+Possible future AI features:
+
+- Natural-language timetable configuration
+- Student progress summaries
+- Report-card remark suggestions
+- Administrative report summaries
+- Attendance pattern analysis
+- Fee collection insights
+- Admission assistance
+- Internal school assistant
+- Search across school records
+
+AI must respect permissions and must never expose information that the
+logged-in user is not authorized to access.
+
+============================================================
+33. FUTURE MOBILE APPLICATIONS
+============================================================
+
+Future versions may provide:
+
+- Parent mobile app
+- Teacher mobile app
+- Student mobile app
+- Admin mobile app
+
+Potential technology:
+
+- Flutter
+
+The initial V1 does not require mobile applications.
+
+============================================================
+34. FUTURE CLOUD / SAAS EXTENSION
+============================================================
+
+The initial system is NOT SaaS and does NOT require cloud hosting.
+
+However, the code should be modular enough that future versions can
+support:
+
+- Multiple schools
+- Multiple campuses
+- Cloud deployment
+- Online parent portal
+- Mobile applications
+- Cloud backups
+- Online payments
+- Subscription billing
+- Central administration
+
+Do not add this complexity to V1 unless required.
+
+============================================================
+35. ANDROID COMMUNICATION GATEWAY
+============================================================
+
+Develop an Android companion application that can communicate with the
+local Django system.
+
+The Android gateway may provide:
+
+- Device registration
+- Device health/status
+- SMS sending
+- Message queue synchronization
+- WhatsApp integration where technically appropriate
+- Connection status
+- SIM information
+- Network status
+- Battery status
+- Message result reporting
+
+Prefer a proper Android gateway application communicating with Django
+over a local API rather than making Django directly dependent on fragile
+ADB UI automation.
+
+USB debugging/ADB may be used during development or for supported device
+communication, but the gateway should have a clean software interface.
+
+============================================================
+36. OFFLINE QUEUE
+============================================================
+
+Internet-dependent messages should never break the school system.
+
+Example:
+
+A student is marked absent while Internet is unavailable.
+
+The system stores:
+
+    Message: Student absence notification
+    Recipient: Parent
+    Type: SMS/WhatsApp
+    Status: Pending
+
+When the Android gateway/network becomes available, the gateway processes
+the queue.
+
+This ensures the school can continue operating normally offline.
+
+============================================================
+37. DEVELOPMENT QUALITY
+============================================================
+
+Code should be:
+
+- Modular
+- Maintainable
+- Documented
+- Secure
+- Reusable
+- Tested
+- Properly named
+- Organized by Django app/module
+- Designed for future extension
+
+Use:
+
+- Django migrations
+- Unit tests
+- Integration tests
+- Form validation
+- Model validation
+- Permission checks
+- Error handling
+- Logging
+
+Avoid unnecessary microservices.
+
+A modular Django monolith is preferred for V1.
+
+============================================================
+38. RECOMMENDED DJANGO APP STRUCTURE
+============================================================
+
+Possible applications:
+
+core/
+accounts/
+school/
+students/
+parents/
+admissions/
+academics/
+timetable/
+attendance/
+staff/
+hr/
+payroll/
+houses/
+exams/
+results/
+progress/
+fees/
+finance/
+transport/
+library/
+inventory/
+discipline/
+communication/
+documents/
+reports/
+notifications/
+backup/
+hardware/
+
+The exact structure can be adjusted during implementation.
+
+============================================================
+39. DEPLOYMENT GOAL
+============================================================
+
+The final deployment should allow a school to install the application
+on a local Windows server/computer and use it through browsers on the
+school LAN.
+
+Basic deployment flow:
+
+1. Install Python
+2. Install PostgreSQL
+3. Obtain project source
+4. Create .venv
+5. Install requirements.txt
+6. Configure environment settings
+7. Configure database
+8. Run migrations
+9. Create administrator
+10. Collect static files
+11. Start Django/local server
+12. Connect school computers through LAN
+13. Configure optional Android communication gateway
+14. Configure backup destination
+
+The system should not require Internet access for normal school
+management.
+
+============================================================
+40. FINAL DEVELOPMENT PRINCIPLE
+============================================================
+
+Build this as a serious, production-ready School Management System,
+not merely a collection of CRUD screens.
+
+The system should provide a unified operational platform for the school.
+
+Core principle:
+
+    "Offline First. Modular. Secure. Automated. Extensible."
+
+Automatic timetable generation should be a major differentiating feature.
+
+The Android communication gateway should allow practical local SMS
+communication using a SIM while keeping the core school system offline.
+
+UX/UI reference materials in the project directory should be reviewed
+and incorporated into the interface design.
+
+A virtual environment (.venv) and root-level requirements.txt are
+mandatory development/deployment requirements so that the project can
+be installed consistently and easily on another machine.

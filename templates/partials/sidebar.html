@@ -1,0 +1,71 @@
+{% load static %}
+<aside class="app-sidebar" id="appSidebar">
+    <div class="sidebar-brand">
+        <div class="sidebar-brand-block">
+            <div>
+                <img src="{% static 'img/edflow-horizontal.png' %}" alt="EdFlow" class="sidebar-brand-logo sidebar-brand-logo-full">
+                <img src="{% static 'img/edflow-icon.png' %}" alt="EdFlow" class="sidebar-brand-logo sidebar-brand-logo-icon">
+            </div>
+            {% if school.name %}
+                <span class="sidebar-brand-text">{{ school.name }}.</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        {% include "partials/nav_item.html" with label="Dashboard" icon="pie-chart" url_name="core:dashboard" active_namespace="core" %}
+
+        <span class="sidebar-section"><span class="sidebar-section-title">Academics</span></span>
+        {% include "partials/nav_item.html" with label="Teachers" icon="person-video" url_name="staff:list" active_namespace="staff" %}
+        {% include "partials/nav_item.html" with label="Students" icon="mortarboard" url_name="students:list" active_namespace="students" %}
+        {% include "partials/nav_item.html" with label="Parents" icon="person-lines-fill" url_name="parents:list" active_namespace="parents" %}
+        {% include "partials/nav_item.html" with label="Classes" icon="building" url_name="academics:classes" active_url_name="classes" %}
+        {% include "partials/nav_item.html" with label="Subjects" icon="journal-bookmark" url_name="academics:subjects" active_url_name="subjects" %}
+        {% include "partials/nav_item.html" with label="Sections" icon="grid-1x2" url_name="academics:sections" active_url_name="sections" %}
+        {% include "partials/nav_item.html" with label="Rooms" icon="door-open" url_name="academics:rooms" active_url_name="rooms" %}
+        {% include "partials/nav_item.html" with label="Admissions" icon="file-earmark-plus" url_name="admissions:list" active_namespace="admissions" %}
+        {% include "partials/nav_item.html" with label="Homework" icon="pencil-square" url_name="academics:homework" active_url_name="homework" %}
+
+        <span class="sidebar-section"><span class="sidebar-section-title">Operations</span></span>
+        {% include "partials/nav_item.html" with label="Attendance" icon="clipboard-check" url_name="attendance:list" active_namespace="attendance" %}
+        {% include "partials/nav_item.html" with label="Timetable" icon="calendar-week" url_name="timetable:index" active_namespace="timetable" %}
+        {% include "partials/nav_item.html" with label="Examinations" icon="award" url_name="exams:list" active_namespace="exams" %}
+        {% include "partials/nav_item.html" with label="Results" icon="bar-chart" url_name="results:list" active_namespace="results" %}
+        {% include "partials/nav_item.html" with label="Progress" icon="graph-up-arrow" url_name="progress:list" active_namespace="progress" %}
+        {% include "partials/nav_item.html" with label="Houses" icon="shield" url_name="houses:list" active_namespace="houses" %}
+        {% include "partials/nav_item.html" with label="Discipline" icon="exclamation-triangle" url_name="discipline:list" active_namespace="discipline" %}
+        {% include "partials/nav_item.html" with label="Library" icon="book" url_name="library:list" active_namespace="library" %}
+        {% include "partials/nav_item.html" with label="Transport" icon="bus-front" url_name="transport:list" active_namespace="transport" %}
+        {% include "partials/nav_item.html" with label="Inventory" icon="boxes" url_name="inventory:list" active_namespace="inventory" %}
+
+        <span class="sidebar-section"><span class="sidebar-section-title">Finance & HR</span></span>
+        {% include "partials/nav_item.html" with label="Fees & Finance" icon="cash-coin" url_name="fees:heads" active_url_name="heads|payments" %}
+        {% include "partials/nav_item.html" with label="Fee Vouchers" icon="receipt" url_name="fees:vouchers" active_url_name="vouchers" %}
+        {% include "partials/nav_item.html" with label="Expenses" icon="cart-x" url_name="finance:list" active_namespace="finance" %}
+        {% include "partials/nav_item.html" with label="Payroll" icon="wallet2" url_name="payroll:list" active_namespace="payroll" %}
+
+        <span class="sidebar-section"><span class="sidebar-section-title">Communication</span></span>
+        {% include "partials/nav_item.html" with label="Messages (SMS)" icon="chat-left-text" url_name="communication:list" active_namespace="communication" %}
+        {% include "partials/nav_item.html" with label="Templates" icon="file-text" url_name="communication:templates" active_url_name="template" %}
+        {% include "partials/nav_item.html" with label="Announcements" icon="megaphone" url_name="notifications:announcements" active_namespace="notifications" %}
+        {% include "partials/nav_item.html" with label="SMS Gateway" icon="phone" url_name="hardware:devices" active_namespace="hardware" %}
+        {% include "partials/nav_item.html" with label="Maintenance" icon="tools" url_name="hardware:maintenance" active_url_name="maintenance" %}
+
+        <span class="sidebar-section"><span class="sidebar-section-title">Administration</span></span>
+        {% include "partials/nav_item.html" with label="Documents" icon="folder2-open" url_name="documents:list" active_namespace="documents" %}
+        {% include "partials/nav_item.html" with label="Reports" icon="files" url_name="reports:list" active_namespace="reports" %}
+        {% include "partials/nav_item.html" with label="Backup & Restore" icon="database-check" url_name="backup:list" active_namespace="backup" %}
+        {% include "partials/nav_item.html" with label="Users & Roles" icon="people" url_name="accounts:user_list" active_namespace="accounts" %}
+        {% include "partials/nav_item.html" with label="Settings" icon="gear" url_name="school:settings" active_url_name="settings" %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button class="nav-item nav-item-sm btn-logout" type="submit">
+                <i class="bi bi-box-arrow-right"></i><span>Log Out</span>
+            </button>
+        </form>
+    </div>
+</aside>
+<div class="app-sidebar-backdrop" data-sidebar-toggle></div>

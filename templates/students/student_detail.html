@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ student.full_name }}</h1>
+        <p class="page-subtitle mb-0">{{ student.admission_number }} · {{ student.klass|default:"No class" }}{% if student.section %} / {{ student.section.name }}{% endif %}</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-{% if student.status == 'active' %}success{% elif student.status == 'suspended' %}danger{% else %}secondary{% endif %}" style="font-size:.85rem;">{{ student.get_status_display }}</span>
+        <a href="{% url 'students:edit' student.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <a href="{% url 'students:delete' student.pk %}" class="btn btn-outline-danger"><i class="bi bi-trash me-1"></i></a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if student.photograph %}
+                    <img src="{{ student.photograph.url }}" alt="{{ student.full_name }}" class="rounded-circle mb-3" style="width:110px;height:110px;object-fit:cover;">
+                {% else %}
+                    <span class="user-avatar mx-auto mb-3" style="width:110px;height:110px;font-size:2.4rem;">{{ student.first_name|slice:":1" }}</span>
+                {% endif %}
+                <h5 class="mb-1">{{ student.full_name }}</h5>
+                <p class="text-muted small mb-2">{{ student.registration_number|default:student.admission_number }}</p>
+                <div class="row text-start small g-2 mt-2">
+                    <div class="col-6"><span class="text-muted">Date of birth</span><br><strong>{{ student.date_of_birth|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Gender</span><br><strong>{{ student.get_gender_display|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Blood group</span><br><strong>{{ student.blood_group|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">House</span><br><strong>{{ student.house|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Phone</span><br><strong>{{ student.phone|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Joined</span><br><strong>{{ student.joined_at|default:"—" }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">Guardians</div>
+                    <div class="card-body">
+                        {% for guardian in guardians %}
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                                <div>
+                                    <strong>{{ guardian.full_name }}</strong>
+                                    <div class="small text-muted">{{ guardian.relationship|default:"—" }}{% if guardian.is_primary %}, Primary{% endif %}</div>
+                                </div>
+                                <div class="small">{{ guardian.phone|default:"—" }}</div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted small mb-0">No guardians linked yet.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Recent Attendance</div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for rec in attendance %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>{{ rec.date }}</span>
+                                    <span class="badge text-bg-{% if rec.status == 'present' %}success{% elif rec.status == 'absent' %}danger{% else %}warning{% endif %}">{{ rec.get_status_display }}</span>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-muted small">No attendance recorded.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Recent Payments</div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for p in payments %}
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span class="small">{{ p.receipt_number }} · {{ p.fee_head }}</span>
+                                    <span class="fw-semibold">{{ p.amount }}</span>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-muted small">No payments recorded.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

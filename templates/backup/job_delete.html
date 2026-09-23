@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-danger d-flex gap-2 align-items-start">
+            <i class="bi bi-exclamation-triangle mt-1"></i>
+            <div>
+                Permanently delete <strong>{{ object.archive_name }}</strong>
+                ({{ object.human_size }}, {% if object.verified %}verified{% else %}not verified{% endif %})?
+                This removes the archive from disk
+                {% if object.profile %}(<code>{{ object.profile.destination_path }}</code>){% endif %}.
+            </div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit"><i class="bi bi-trash me-1"></i>Delete backup</button>
+            <a href="{% url 'backup:history' %}" class="btn btn-link text-muted">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

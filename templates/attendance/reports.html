@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small" for="report-klass">Class</label>
+            <select class="form-select" name="klass" id="report-klass">
+                <option value="">Select class…</option>
+                {% for k in klasses %}
+                    <option value="{{ k.pk }}" {% if selected_klass == k.pk|stringformat:"s" %}selected{% endif %}>{{ k.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small" for="report-month">Month</label>
+            <select class="form-select" name="month" id="report-month">
+                {% for value, label in month_choices %}
+                    <option value="{{ value }}" {% if month == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small" for="report-year">Year</label>
+            <select class="form-select" name="year" id="report-year">
+                {% for y in year_choices %}
+                    <option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit">Show report</button>
+        </div>
+        <div class="col-md-2">
+            <a class="btn btn-outline-success w-100" href="{% url 'attendance:export' %}?klass={{ selected_klass }}&year={{ year }}&month={{ month }}"><i class="bi bi-download me-1"></i>CSV</a>
+        </div>
+    </div>
+</form>
+
+{% if klass %}
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <span class="stat-icon bg-primary-soft"><i class="bi bi-calendar3"></i></span>
+                <div><div class="stat-value">{{ month }}/{{ year }}</div><div class="stat-label">Reporting Month</div></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <span class="stat-icon bg-success-soft"><i class="bi bi-person-check"></i></span>
+                <div><div class="stat-value">{{ present_total }}</div><div class="stat-label">Present Marks</div></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <span class="stat-icon bg-info-soft"><i class="bi bi-clipboard-data"></i></span>
+                <div><div class="stat-value">{{ marked_total }}</div><div class="stat-label">Total Marks</div></div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-3">
+            <div class="card stat-card">
+                <span class="stat-icon bg-warning-soft"><i class="bi bi-percent"></i></span>
+                <div><div class="stat-value">{{ class_percent }}%</div><div class="stat-label">Class Attendance</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Class daily attendance % — {{ klass }}</div>
+        <div class="card-body">
+            <canvas id="dailyChart" height="90"></canvas>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Per-student summary — {{ klass }}</span>
+                    <span class="badge text-bg-light">{{ students|length }} students</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Present</th>
+                                    <th>Absent</th>
+                                    <th>Late</th>
+                                    <th>Leave</th>
+                                    <th>Excused</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in student_rows %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'students:detail' row.student.pk %}" class="fw-semibold text-decoration-none">{{ row.student.full_name }}</a>
+                                        <div class="small text-muted">{{ row.student.admission_number }}</div>
+                                    </td>
+                                    <td>{{ row.present }}</td>
+                                    <td>{{ row.absent }}</td>
+                                    <td>{{ row.late }}</td>
+                                    <td>{{ row.leave }}</td>
+                                    <td>{{ row.excused }}</td>
+                                    <td>
+                                        <span class="badge text-bg-{% if row.percent >= 90 %}success{% elif row.percent >= 75 %}warning{% else %}danger{% endif %}">{{ row.percent }}%</span>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="7">
+                                    <div class="empty-state">
+                                        <i class="bi bi-people"></i>
+                                        No active students in this class.
+                                    </div>
+                                </td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">Subject attendance — {{ klass }}</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr><th>Subject</th><th>Present</th><th>%</th></tr>
+                            </thead>
+                            <tbody>
+                            {% for row in subject_rows %}
+                                <tr>
+                                    <td>{{ row.subject }}</td>
+                                    <td>{{ row.present }}/{{ row.total }}</td>
+                                    <td><span class="badge text-bg-{% if row.percent >= 90 %}success{% elif row.percent >= 75 %}warning{% else %}danger{% endif %}">{{ row.percent }}%</span></td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="3"><p class="text-muted small mb-0">No period attendance recorded this month.</p></td></tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card"><div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-bar-chart-line"></i>
+            Select a class and month to view attendance analytics.
+        </div>
+    </div></div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if klass %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+    var canvas = document.getElementById("dailyChart");
+    if (!canvas || typeof Chart === "undefined") return;
+    new Chart(canvas, {
+        type: "line",
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: "Attendance %",
+                data: {{ chart_values|safe }},
+                borderColor: "#4f46e5",
+                backgroundColor: "rgba(79, 70, 229, 0.12)",
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100 } },
+            plugins: { legend: { display: false } }
+        }
+    });
+})();
+</script>
+{% endif %}
+{% endblock %}

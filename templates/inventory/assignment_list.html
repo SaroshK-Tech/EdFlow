@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Assign Asset" primary_url="inventory:assignment_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr><th>Asset</th><th>Assigned to</th><th>From</th><th>Returned</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                {% for assignment in assignments %}
+                    <tr>
+                        <td class="fw-semibold">{{ assignment.asset }}</td>
+                        <td>{{ assignment.assigned_to }}</td>
+                        <td>{{ assignment.assigned_on }}</td>
+                        <td>{{ assignment.returned_on|default:"—" }}</td>
+                        <td>
+                            {% if assignment.returned_on %}
+                                <span class="badge text-bg-secondary">Returned</span>
+                            {% else %}
+                                <span class="badge text-bg-primary">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state"><i class="bi bi-person-badge"></i>No assignments yet — assign assets to staff.</div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'inventory:asset_list' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to assets</a>
+</div>
+{% endblock %}

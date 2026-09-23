@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div>
+        <a class="btn btn-primary" href="{% url 'transport:route_edit' route.pk %}"><i class="bi bi-pencil me-1"></i>Edit Route</a>
+        <a class="btn btn-outline-primary" href="{% url 'transport:stop_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Stop</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-bus-front"></i></span>
+            <div><div class="stat-value">{{ route.vehicle|default:"—" }}</div><div class="stat-label">Vehicle</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-person-vcard"></i></span>
+            <div><div class="stat-value">{{ route.assigned_driver|default:"—" }}</div><div class="stat-label">Driver</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-people"></i></span>
+            <div><div class="stat-value">{{ loading }} / {{ capacity|default:"—" }}</div><div class="stat-label">Student+Staff / Capacity</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-signpost-split"></i></span>
+            <div><div class="stat-value">{{ stops|length }}</div><div class="stat-label">Stops</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Route Loading</div>
+    <div class="card-body">
+        {% if capacity %}
+            <div class="d-flex justify-content-between small mb-1">
+                <span>{{ student_count }} students, {{ staff_count }} staff assigned</span>
+                <span class="text-muted">{{ loading_pct }}% of capacity</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+                <div class="progress-bar {% if loading_pct > 100 %}bg-danger{% elif loading_pct >= 90 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ loading_pct }}%;"></div>
+            </div>
+        {% else %}
+            <p class="text-muted small mb-0">No vehicle assigned to this route — assign a vehicle to see capacity.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Stops</div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Stop</th>
+                    <th>Pickup</th>
+                    <th>Drop-off</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for stop in stops %}
+                <tr>
+                    <td>{{ stop.sequence }}</td>
+                    <td class="fw-semibold">{{ stop.name }}</td>
+                    <td>{{ stop.pickup_time|time:"H:i"|default:"—" }}</td>
+                    <td>{{ stop.dropoff_time|time:"H:i"|default:"—" }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'transport:stop_delete' stop.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="bi bi-signpost"></i>
+                        No stops yet — add stops to this route.
+                    </div>
+                </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

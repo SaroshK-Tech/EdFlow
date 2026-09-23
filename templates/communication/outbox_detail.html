@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title="Message #{{ outbox.pk }}" subtitle="Message detail" %}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-envelope me-1"></i>Message body</span>
+                <span class="badge text-bg-light border text-capitalize">{{ outbox.channel }}</span>
+            </div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space:pre-wrap">{{ outbox.message }}</p>
+                {% if outbox.failure_reason %}
+                    <div class="alert alert-danger mt-3 py-2 mb-0"><i class="bi bi-exclamation-triangle me-1"></i>{{ outbox.failure_reason }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Details</span></div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Recipient</span><span class="fw-semibold">{{ outbox.recipient }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Status</span>
+                    <span>
+                        {% if outbox.status == "sent" %}<span class="badge text-bg-success">Sent</span>
+                        {% elif outbox.status == "failed" %}<span class="badge text-bg-danger">Failed</span>
+                        {% elif outbox.status == "processing" %}<span class="badge text-bg-info">Processing</span>
+                        {% elif outbox.status == "scheduled" %}<span class="badge text-bg-warning">Scheduled</span>
+                        {% elif outbox.status == "cancelled" %}<span class="badge text-bg-secondary">Cancelled</span>
+                        {% else %}<span class="badge text-bg-light border">Pending</span>{% endif %}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Priority</span><span class="text-capitalize">{{ outbox.priority }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Attempts</span><span>{{ outbox.attempt_count }}</span></li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Created</span><span>{{ outbox.created_at|date:"d M Y H:i" }}</span></li>
+                {% if outbox.scheduled_for %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Scheduled</span><span>{{ outbox.scheduled_for|date:"d M Y H:i" }}</span></li>{% endif %}
+                {% if outbox.sent_at %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Sent</span><span>{{ outbox.sent_at|date:"d M Y H:i" }}</span></li>{% endif %}
+                {% if outbox.gateway %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Gateway</span><span>{{ outbox.gateway }}</span></li>{% endif %}
+                {% if outbox.template %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Template</span><span>{{ outbox.template.name }}</span></li>{% endif %}
+                {% if outbox.batch %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Batch</span><a href="{% url 'communication:batch_detail' outbox.batch.pk %}">{{ outbox.batch.subject }}</a></li>{% endif %}
+            </ul>
+            {% if outbox.status == "failed" %}
+                <div class="card-footer bg-transparent">
+                    <form method="post" action="{% url 'communication:message_retry' outbox.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-warning w-100"><i class="bi bi-arrow-repeat me-1"></i>Retry message</button>
+                    </form>
+                </div>
+            {% elif outbox.status == "pending" or outbox.status == "scheduled" %}
+                <div class="card-footer bg-transparent">
+                    <a href="{% url 'communication:message_cancel' outbox.pk %}" class="btn btn-outline-secondary w-100"><i class="bi bi-slash-circle me-1"></i>Cancel message</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'communication:list' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to message center</a>
+</div>
+{% endblock %}

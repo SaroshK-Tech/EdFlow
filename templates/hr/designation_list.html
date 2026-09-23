@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'hr:employees' %}"><i class="bi bi-people me-1"></i>Employees</a>
+        <a class="btn btn-primary" href="{% url 'hr:designation_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Designation</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ designations|length }} designations</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Designation</th>
+                        <th>Department</th>
+                        <th>Grade</th>
+                        <th>Members</th>
+                        <th>Description</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for desg in designations %}
+                    <tr>
+                        <td class="fw-semibold">{{ desg.name }}</td>
+                        <td>{{ desg.department|default:"—" }}</td>
+                        <td>{{ desg.grade|default:"—" }}</td>
+                        <td><span class="badge text-bg-light">{{ desg.member_count }}</span></td>
+                        <td class="text-muted small">{{ desg.description|default:"—"|truncatechars:60 }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'hr:designation_edit' desg.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'hr:designation_delete' desg.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-person-badge"></i>
+                            {% if q %}No designations match "{{ q }}".{% else %}No designations yet — add job titles used across the school.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

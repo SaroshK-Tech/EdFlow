@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title="Confirm Delete" subtitle="This action cannot be undone." %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            {% if holiday %}
+                <p class="mb-0">Are you sure you want to delete holiday
+                    <strong>&ldquo;{{ holiday.name }}&rdquo;</strong> ({{ holiday.start_date }} — {{ holiday.end_date }})?</p>
+            {% elif working_day %}
+                <p class="mb-0">Are you sure you want to remove the working day
+                    <strong>&ldquo;{{ working_day.get_weekday_display }}&rdquo;</strong> for
+                    {{ working_day.academic_year.name }}?</p>
+            {% endif %}
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'school:settings' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

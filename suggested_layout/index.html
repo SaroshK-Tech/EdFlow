@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schoolastica - Course Sessions Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cloudflare.com">
+</head>
+<body>
+
+    <div class="dashboard-container">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <!-- LOGO OPTION SWITCH: Uncomment the img tag and comment out the h1 tag to switch to an image logo -->
+                <!-- <h1 class="logo">Schoolastica.</h1> -->
+                <img src="logo.png" alt="Schoolastica Logo" class="logo-img">
+                
+                <button class="toggle-btn" id="sidebarToggle"><i class="fa-solid fa-bars"></i></button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#"><i class="fa-solid fa-gauge"></i> <span>Dashboard</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-user-tie"></i> <span>Teachers</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-graduation-cap"></i> <span>Students</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-cubes"></i> <span>Classes</span></a></li>
+                    <li class="active"><a href="#"><i class="fa-solid fa-book-open"></i> <span>Course Sessions</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-id-card"></i> <span>Admissions</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-file-invoice"></i> <span>Examinations</span></a></li>
+                </ul>
+
+                <ul class="sidebar-footer">
+                    <li><a href="#"><i class="fa-solid fa-gear"></i> <span>Settings</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-circle-question"></i> <span>Support</span></a></li>
+                    <li><a href="#"><i class="fa-solid fa-right-from-bracket"></i> <span>Log out</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Top Search and Profile Bar -->
+            <header class="top-bar">
+                <div class="search-box">
+                    <input type="text" placeholder="Search...">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                
+                <div class="user-actions">
+                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
+                    <button class="icon-btn"><i class="fa-regular fa-comment-dots"></i></button>
+                    <div class="profile-dropdown">
+                        <img src="https://pravatar.cc" alt="User Profile" class="avatar">
+                        <span class="username">Rony</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Cards Grid Layout Section -->
+            <section class="grid-container">
+                <!-- Card 1 -->
+                <div class="class-card card-teal">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="class-card card-blue">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="class-card card-red">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <img src="https://pravatar.cc" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="class-card card-brown">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc0" alt="Student">
+                            <img src="https://pravatar.cc1" alt="Student">
+                            <img src="https://pravatar.cc2" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="class-card card-purple">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc3" alt="Student">
+                            <img src="https://pravatar.cc4" alt="Student">
+                            <img src="https://pravatar.cc5" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="class-card card-cyan">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc6" alt="Student">
+                            <img src="https://pravatar.cc7" alt="Student">
+                            <img src="https://pravatar.cc8" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 7 -->
+                <div class="class-card card-orange">
+                    <div class="card-header">
+                        <div>
+                            <h2>Standard</h2>
+                            <h3>one</h3>
+                            <p>50 Students</p>
+                        </div>
+                        <div class="card-badge">01</div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="student-avatars">
+                            <img src="https://pravatar.cc9" alt="Student">
+                            <img src="https://pravatar.cc0" alt="Student">
+                            <img src="https://pravatar.cc1" alt="Student">
+                            <span class="more-count">12+</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- Table Layout -->
+             <section class="table-container">
+                <!-- table 1 -->
+                <table>
+                    <thead>
+                        <th> ID </th>
+                        <th> Name </th>
+                        <th> Gender </th>
+                        <th> Subject </th>
+                        <th> Section </th>
+                        <th> Class </th>
+                        <th> mobile No </th>
+                        <th> Email Address </th>
+                    </thead>
+                </table>
+
+            </section>
+
+
+
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

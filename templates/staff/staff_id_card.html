@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a href="{% url 'staff:detail' member.pk %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Back to profile</a>
+    <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+</div>
+
+<div class="row g-3 justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card id-card">
+            <div class="id-card-header text-center text-white py-3">
+                <h4 class="mb-0">{{ school.name|default:"EdFlow School" }}</h4>
+                {% if school.tagline %}<small>{{ school.tagline }}</small>{% endif %}
+            </div>
+            <div class="card-body text-center">
+                <div class="mx-auto mb-2 id-card-photo">
+                    {% if member.photograph %}
+                        <img src="{{ member.photograph.url }}" alt="{{ member.full_name }}" width="96" height="96" style="object-fit:cover" class="rounded-circle border">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary border" style="width:96px;height:96px"><i class="bi bi-person" style="font-size:3rem"></i></div>
+                    {% endif %}
+                </div>
+                <h5 class="mb-0">{{ member.full_name }}</h5>
+                <div class="text-muted small">{{ member.designation|default:"Staff member" }}{% if member.is_teacher %} · Teacher{% endif %}</div>
+                <div class="badge text-bg-primary mt-2">{{ member.employee_code }}</div>
+                <div class="row text-start mt-3 small">
+                    <div class="col-6 mb-1"><span class="text-muted">Department</span><br>{{ member.department|default:"—" }}</div>
+                    <div class="col-6 mb-1"><span class="text-muted">Phone</span><br>{{ member.phone|default:"—" }}</div>
+                    <div class="col-6"><span class="text-muted">Joined</span><br>{{ member.joining_date|date:"d M Y"|default:"—" }}</div>
+                    <div class="col-6"><span class="text-muted">Blood group / DOB</span><br>{{ member.date_of_birth|date:"d M Y"|default:"—" }}</div>
+                </div>
+            </div>
+            <div class="card-footer text-center small text-muted">
+                {{ school.address|default:"" }}{% if school.phone %} · {{ school.phone }}{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style media="print">
+    body { background: #fff; }
+    .app-sidebar, .app-topbar, .btn-print { display: none !important; }
+    .id-card { border: 2px solid #0d6efd; }
+    .id-card-header { background: #0d6efd; }
+    .app-main { margin-left: 0 !important; }
+</style>
+{% endblock %}

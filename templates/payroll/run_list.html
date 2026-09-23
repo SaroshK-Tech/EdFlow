@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'payroll:components' %}"><i class="bi bi-sliders me-1"></i>Components</a>
+        <a class="btn btn-outline-primary" href="{% url 'payroll:reports' %}"><i class="bi bi-bar-chart me-1"></i>Reports</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header"><i class="bi bi-gear me-1"></i>Process New Run</div>
+    <div class="card-body">
+        <form method="post" action="{% url 'payroll:run' %}" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <label class="form-label small" for="run-month">Month</label>
+                <select name="month" id="run-month" class="form-select form-select-sm" required>
+                    {% for value, label in run_form.month.field.choices %}
+                        <option value="{{ value }}" {% if value == today.month|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small" for="run-year">Year</label>
+                <input type="number" name="year" id="run-year" class="form-control form-control-sm" min="2000" max="2100" value="{{ today.year }}" required>
+            </div>
+            <div class="col-md-4">
+                <div class="form-check mt-4">
+                    <input type="checkbox" class="form-check-input" name="draft" id="run-draft">
+                    <label class="form-check-label small" for="run-draft">Create as draft (skip processing)</label>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100"><i class="bi bi-play-fill me-1"></i>Create & Process</button>
+            </div>
+        </form>
+        <p class="small text-muted mt-2 mb-0">Re-running an existing month/year is idempotent — pay slips are recomputed from scratch.</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ runs|length }} runs</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Run</th>
+                        <th>Period</th>
+                        <th>Status</th>
+                        <th>Pay Slips</th>
+                        <th>Created</th>
+                        <th>Paid On</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for run in runs %}
+                    <tr>
+                        <td class="fw-semibold">{{ run.title }}</td>
+                        <td>{{ run.month }}/{{ run.year }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if run.status == 'paid' %}success{% elif run.status == 'processed' %}info{% else %}warning{% endif %}">{{ run.get_status_display }}</span>
+                        </td>
+                        <td><span class="badge text-bg-light">{{ run.slips.count }}</span></td>
+                        <td class="small text-muted">{{ run.created_by|default:"—" }}<br>{{ run.created_at|date:"d M Y" }}</td>
+                        <td>{{ run.paid_on|default:"—" }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'payroll:detail' run.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>View</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-wallet2"></i>
+                            {% if q %}No runs match "{{ q }}".{% else %}No payroll runs yet — process your first run above.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

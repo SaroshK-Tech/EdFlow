@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small" for="period-date">Date</label>
+            <input type="date" class="form-control" name="date" id="period-date" value="{{ date }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small" for="period-klass">Class</label>
+            <select class="form-select" name="klass" id="period-klass">
+                <option value="">Select class…</option>
+                {% for k in klasses %}
+                    <option value="{{ k.pk }}" {% if klass and klass.pk == k.pk %}selected{% endif %}>{{ k.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small" for="period-section">Section</label>
+            <select class="form-select" name="section" id="period-section">
+                <option value="">All sections</option>
+                {% for s in sections %}
+                    <option value="{{ s.pk }}" data-klass="{{ s.klass_id }}" {% if section and section.pk == s.pk %}selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100" type="submit">Show grid</button>
+        </div>
+    </div>
+</form>
+
+{% if rows %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ date }}">
+        <input type="hidden" name="klass" value="{{ klass.pk }}">
+        <input type="hidden" name="section" value="{% if section %}{{ section.pk }}{% endif %}">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Period register for {{ date }} — {{ klass }}</span>
+                <span class="badge text-bg-light">{{ students|length }} students · {{ rows|length }} periods</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 150px;">Period</th>
+                                {% for student in students %}
+                                    <th class="small">{{ student.full_name }}<br><span class="text-muted">{{ student.roll_number|default:student.admission_number }}</span></th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                <td>
+                                    <strong>{{ row.period.name }}</strong>
+                                    <div class="small text-muted">{{ row.period.start_time|time:"H:i" }}–{{ row.period.end_time|time:"H:i" }}</div>
+                                    {% if row.subject %}<span class="badge text-bg-light">{{ row.subject }}</span>{% endif %}
+                                </td>
+                                {% for cell in row.cells %}
+                                    <td style="min-width: 130px;">
+                                        <select class="form-select form-select-sm" name="status_{{ row.period.pk }}_{{ cell.student.pk }}">
+                                            <option value="">—</option>
+                                            {% for value, label in statuses %}
+                                                <option value="{{ value }}" {% if cell.status == value %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between bg-transparent">
+                <a href="{% url 'attendance:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save period attendance</button>
+            </div>
+        </div>
+    </form>
+{% elif klass %}
+    <div class="card"><div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-calendar-x"></i>
+            No periods or students found for {{ klass }}. Add periods or publish a timetable first.
+        </div>
+    </div></div>
+{% else %}
+    <div class="card"><div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-grid-3x3-gap"></i>
+            Select a class to load the period grid.
+        </div>
+    </div></div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var klass = document.getElementById("period-klass");
+    var section = document.getElementById("period-section");
+    if (!klass || !section) return;
+    function sync() {
+        var val = klass.value;
+        Array.prototype.forEach.call(section.options, function (opt) {
+            if (!opt.value) return;
+            var show = !val || opt.dataset.klass === val;
+            opt.hidden = !show;
+            opt.disabled = !show;
+        });
+        if (section.selectedOptions[0] && section.selectedOptions[0].hidden) section.value = "";
+    }
+    klass.addEventListener("change", sync);
+    sync();
+})();
+</script>
+{% endblock %}

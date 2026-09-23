@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">{% include "partials/field.html" with field=form.recipient %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.subject %}</div>
+                <div class="col-md-12">{% include "partials/field.html" with field=form.body %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.is_important %}</div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'notifications:inbox' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Send</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

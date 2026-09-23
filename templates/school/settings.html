@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<ul class="nav nav-tabs settings-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-profile" role="tab"><i class="bi bi-building me-1"></i>School Profile</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-years" role="tab"><i class="bi bi-calendar-event me-1"></i>Academic Years</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-terms" role="tab"><i class="bi bi-layers me-1"></i>Terms</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-days" role="tab"><i class="bi bi-calendar-week me-1"></i>Working Days</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-holidays" role="tab"><i class="bi bi-sun me-1"></i>Holidays</button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- ============ School Profile ============ -->
+    <div class="tab-pane fade show active" id="tab-profile" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        {% if profile.logo %}
+                            <img src="{{ profile.logo.url }}" alt="Logo" class="school-logo mb-3">
+                        {% else %}
+                            <span class="school-logo-placeholder mb-3">{{ profile.name|default:"E"|slice:":1" }}</span>
+                        {% endif %}
+                        <h5 class="mb-0">{{ profile.name }}</h5>
+                        <p class="text-muted small mb-2">{{ profile.tagline|default:"" }}</p>
+                        {% if profile.established_year %}
+                            <span class="badge text-bg-light">Est. {{ profile.established_year }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-8">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row g-3">
+                                {% for field in form %}
+                                    {% if field.name == "bank_holder" %}
+                                        <div class="col-12">
+                                            <hr class="my-2">
+                                            <h6 class="mb-0"><i class="bi bi-bank me-1"></i>Banking Details <span class="text-muted fw-normal small">— printed on fee vouchers</span></h6>
+                                        </div>
+                                    {% endif %}
+                                    <div class="col-md-6">
+                                        {% include "partials/field.html" with field=field %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-end bg-transparent">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Academic Years ============ -->
+    <div class="tab-pane fade" id="tab-years" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Academic Years</span>
+                <a href="{% url 'school:academic_year_add' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Year</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for year in academic_years %}
+                        <tr>
+                            <td class="fw-semibold">{{ year.name }}</td>
+                            <td>{{ year.start_date }}</td>
+                            <td>{{ year.end_date }}</td>
+                            <td>
+                                {% if year.is_active %}
+                                    <span class="badge text-bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'school:academic_year_edit' year.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5"><div class="empty-state py-4"><i class="bi bi-calendar-event"></i>No academic years yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Terms ============ -->
+    <div class="tab-pane fade" id="tab-terms" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Terms</span>
+                <a href="{% url 'school:term_add' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Term</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Academic Year</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for term in terms %}
+                        <tr>
+                            <td class="fw-semibold">{{ term.name }}</td>
+                            <td>{{ term.academic_year.name }}</td>
+                            <td>{{ term.start_date }}</td>
+                            <td>{{ term.end_date }}</td>
+                            <td>
+                                {% if term.is_active %}
+                                    <span class="badge text-bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'school:term_edit' term.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6"><div class="empty-state py-4"><i class="bi bi-layers"></i>No terms yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Working Days ============ -->
+    <div class="tab-pane fade" id="tab-days" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Working Days per Academic Year</span>
+                <a href="{% url 'school:working_day_add' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Working Day</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Academic Year</th>
+                            <th>Weekday</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for day in working_days %}
+                        <tr>
+                            <td class="fw-semibold">{{ day.academic_year.name }}</td>
+                            <td><span class="badge text-bg-light">{{ day.get_weekday_display }}</span></td>
+                            <td class="text-end">
+                                <a href="{% url 'school:working_day_delete' day.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3"><div class="empty-state py-4"><i class="bi bi-calendar-week"></i>No working days configured yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Holidays ============ -->
+    <div class="tab-pane fade" id="tab-holidays" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Holidays</span>
+                <a href="{% url 'school:holiday_add' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Holiday</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Academic Year</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for holiday in holidays %}
+                        <tr>
+                            <td class="fw-semibold">{{ holiday.name }}</td>
+                            <td>{{ holiday.academic_year.name }}</td>
+                            <td>{{ holiday.start_date }}</td>
+                            <td>{{ holiday.end_date }}</td>
+                            <td class="text-end">
+                                <a href="{% url 'school:holiday_edit' holiday.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'school:holiday_delete' holiday.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5"><div class="empty-state py-4"><i class="bi bi-sun"></i>No holidays yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

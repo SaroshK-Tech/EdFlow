@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Search</h1>
+        <p class="page-subtitle mb-0">Results for “{{ q }}”</p>
+    </div>
+    <form class="d-flex" method="get" action="{% url 'core:search' %}">
+        <div class="input-group" style="width: 300px;">
+            <input type="search" class="form-control" name="q" value="{{ q }}" placeholder="Search students, staff, classes…">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+</div>
+
+{% if not q %}
+    <div class="card"><div class="card-body">
+        <div class="empty-state py-5"><i class="bi bi-search"></i>Type something to search across students, staff and classes.</div>
+    </div></div>
+{% else %}
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Students</span>
+                    <a href="{% url 'students:list' %}?q={{ q|urlencode }}" class="small">View all →</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for s in students %}
+                        <a class="list-group-item d-flex justify-content-between align-items-center" href="{% url 'students:detail' s.pk %}">
+                            <span>
+                                <i class="bi bi-person me-2 text-muted"></i>{{ s.full_name }}
+                                <small class="text-muted d-block ms-4">{{ s.admission_number }} · {{ s.klass|default:"Unassigned" }}{% if s.section %} / {{ s.section }}{% endif %}</small>
+                            </span>
+                            <span class="badge text-bg-light">{{ s.status|title }}</span>
+                        </a>
+                    {% empty %}
+                        <div class="list-group-item empty-state py-5"><i class="bi bi-person"></i>No students found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Staff</span>
+                    <a href="{% url 'staff:list' %}?q={{ q|urlencode }}" class="small">View all →</a>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for member in staff %}
+                        <a class="list-group-item d-flex justify-content-between align-items-center" href="{% url 'staff:edit' member.pk %}">
+                            <span>
+                                <i class="bi bi-person-badge me-2 text-muted"></i>{{ member.full_name }}
+                                <small class="text-muted d-block ms-4">{{ member.employee_code }} · {{ member.designation|default:"Staff" }}</small>
+                            </span>
+                            <span class="badge text-bg-light">{{ member.get_status_display }}</span>
+                        </a>
+                    {% empty %}
+                        <div class="list-group-item empty-state py-5"><i class="bi bi-person-badge"></i>No staff found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card h-100">
+                <div class="card-header">Classes</div>
+                <div class="list-group list-group-flush">
+                    {% for klass in classes %}
+                        <a class="list-group-item" href="{% url 'academics:class_edit' klass.pk %}"><i class="bi bi-mortarboard me-2 text-muted"></i>{{ klass.name }}</a>
+                    {% empty %}
+                        <div class="list-group-item empty-state py-5"><i class="bi bi-mortarboard"></i>No classes found.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

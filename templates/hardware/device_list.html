@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Register Device" primary_url="hardware:device_add" %}
+
+<div class="mb-3 text-end">
+    <a href="{% url 'hardware:maintenance' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-tools me-1"></i>Maintenance Tickets</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Device</th><th>Type</th><th>Connection</th><th>Status</th><th>Last seen</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for device in devices %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold"><a href="{% url 'hardware:device_detail' device.pk %}" class="text-decoration-none">{{ device.name }}</a></div>
+                        <div class="small text-muted">{{ device.model|default:"" }} {{ device.serial_number|default:"" }}</div>
+                    </td>
+                    <td><span class="badge text-bg-light border">{{ device.get_device_type_display }}</span></td>
+                    <td><span class="badge text-bg-light border text-capitalize">{{ device.get_connection_display }}</span></td>
+                    <td>
+                        {% if device.status == "active" and device.is_online %}<span class="badge text-bg-success">Online</span>
+                        {% elif device.status == "active" %}<span class="badge text-bg-warning">Active</span>
+                        {% elif device.status == "maintenance" %}<span class="badge text-bg-info">Maintenance</span>
+                        {% elif device.status == "retired" %}<span class="badge text-bg-secondary">Retired</span>
+                        {% else %}<span class="badge text-bg-secondary">Offline</span>{% endif %}
+                    </td>
+                    <td class="small text-muted">{{ device.last_seen|date:"d M H:i"|default:"never" }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'hardware:device_detail' device.pk %}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                        <a href="{% url 'hardware:device_edit' device.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'hardware:device_delete' device.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6">
+                    <div class="empty-state">
+                        <i class="bi bi-phone"></i>
+                        {% if q %}No devices match "{{ q }}".{% else %}No devices registered yet — connect your Android SMS gateway here.{% endif %}
+                    </div>
+                </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

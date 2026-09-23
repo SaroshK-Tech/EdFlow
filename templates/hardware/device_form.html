@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">{% include "partials/field.html" with field=form.name %}</div>
+                <div class="col-md-3">{% include "partials/field.html" with field=form.device_type %}</div>
+                <div class="col-md-3">{% include "partials/field.html" with field=form.connection %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.ip_address %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.mac_address %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.location %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.model %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.serial_number %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.firmware_version %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.sim_info %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.network_status %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.battery_level %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.status %}</div>
+                <div class="col-md-4">{% include "partials/field.html" with field=form.installed_at %}</div>
+                <div class="col-md-12">{% include "partials/field.html" with field=form.notes %}</div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'hardware:devices' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Device</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

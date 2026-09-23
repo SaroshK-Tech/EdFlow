@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">{{ announcement.title }}</span>
+                <div class="d-flex gap-2">
+                    {% if announcement.is_emergency %}<span class="badge text-bg-danger">Emergency</span>{% endif %}
+                    {% if announcement.is_pinned %}<span class="badge text-bg-warning">Pinned</span>{% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    <i class="bi bi-megaphone me-1"></i>{{ announcement.get_audience_display }}
+                    {% if announcement.audience == "class" and announcement.klass %}— {{ announcement.klass.name }}{% endif %}
+                    · {{ announcement.created_at|date:"d M Y H:i" }}
+                </p>
+                <div style="white-space:pre-wrap">{{ announcement.content|default:"<span class='text-muted'>No body.</span>" }}</div>
+            </div>
+            <div class="card-footer d-flex justify-content-between bg-transparent">
+                <a href="{% url 'notifications:announcement_edit' announcement.pk %}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+                <a href="{% url 'notifications:announcement_delete' announcement.pk %}" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash me-1"></i>Delete</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-bell me-1"></i>Options</span></div>
+            <ul class="list-group list-group-flush small">
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Status</span>
+                    {% if announcement.is_active %}<span class="badge text-bg-success">Active</span>{% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Posted by</span><span>{{ announcement.created_by|default:"—" }}</span></li>
+                {% if announcement.expires_at %}<li class="list-group-item d-flex justify-content-between"><span class="text-muted">Expires</span><span>{{ announcement.expires_at|date:"d M Y H:i" }}</span></li>{% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'notifications:announcements' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>All announcements</a>
+</div>
+{% endblock %}

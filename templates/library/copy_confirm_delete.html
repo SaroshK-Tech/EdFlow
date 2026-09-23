@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title="Delete Book Copy" subtitle=copy %}
+
+<div class="card">
+    <div class="card-body">
+        <p class="mb-3">Delete copy <strong>{{ copy.barcode }}</strong> of <strong>{{ copy.book.title }}</strong>? This cannot be undone.</p>
+        <form method="post" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="{% url 'library:book_detail' copy.book_id %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

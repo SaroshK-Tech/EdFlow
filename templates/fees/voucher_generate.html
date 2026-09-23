@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div><a class="btn btn-outline-secondary" href="{% url 'fees:vouchers' %}"><i class="bi bi-arrow-left me-1"></i>All Vouchers</a></div>
+</div>
+
+{% if mode == "form" %}
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.klass.id_for_label }}">{{ form.klass.label }}</label>
+                    {{ form.klass }}
+                    {% for e in form.klass.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="id_section">Section</label>
+                    <select name="section" id="id_section" class="form-select">
+                        <option value="">All sections</option>
+                        {% for s in sections %}
+                            <option value="{{ s.pk }}" data-klass="{{ s.klass_id }}" {% if s.pk|stringformat:"s" == selected_section %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                    {% for e in form.section.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.due_date.id_for_label }}">{{ form.due_date.label }}</label>
+                    {{ form.due_date }}
+                    {% for e in form.due_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label" for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                    {{ form.notes }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label d-block">{{ form.fee_heads.label }}</label>
+                    <div class="fee-head-picker">
+                        {{ form.fee_heads }}
+                    </div>
+                    {% for e in form.fee_heads.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        {{ form.skip_existing }}
+                        <label class="form-check-label" for="{{ form.skip_existing.id_for_label }}">{{ form.skip_existing.label }}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'fees:vouchers' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" name="preview" value="1" class="btn btn-primary"><i class="bi bi-eye me-1"></i>Preview</button>
+        </div>
+    </div>
+</form>
+
+{% else %}
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Preview — {{ klass }}{% if section %} / {{ section }}{% endif %}</span>
+        <span class="badge text-bg-primary">{{ student_count }} student(s)</span>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3"><div class="text-muted small">Fee Heads</div><div class="fw-bold">{{ heads|length }}</div></div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3"><div class="text-muted small">Per Student</div><div class="fw-bold">{{ per_student|floatformat:2 }}</div></div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3"><div class="text-muted small">Skipped (already billed)</div><div class="fw-bold">{{ skipped }}</div></div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3"><div class="text-muted small">Grand Total</div><div class="fw-bold text-success">{{ grand_total|floatformat:2 }}</div></div>
+            </div>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3 bg-success bg-opacity-10"><div class="text-muted small">Concessions applied</div><div class="fw-bold text-success">-{{ discount_total|floatformat:2 }}</div></div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="border rounded p-3"><div class="text-muted small">Net total</div><div class="fw-bold">{{ net_total|floatformat:2 }}</div></div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Fee Head</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for head in heads %}
+                        <tr><td>{{ head.name }}</td><td class="text-end">{{ head.amount|floatformat:2 }}</td></tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr><td class="fw-semibold">Total per student</td><td class="text-end fw-semibold">{{ per_student|floatformat:2 }}</td></tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="table-responsive" style="max-height: 360px; overflow:auto;">
+            <table class="table table-hover table-sm align-middle">
+                <thead>
+                    <tr><th>#</th><th>Admission No</th><th>Student</th><th>Class</th><th>Section</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ s.admission_number }}</td>
+                            <td>{{ s.full_name }}</td>
+                            <td>{{ s.klass|default:"—" }}</td>
+                            <td>{{ s.section.name|default:"—" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5"><div class="empty-state"><i class="bi bi-people"></i>No students to bill for this selection.</div></td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if student_count > students|length %}
+            <p class="small text-muted mb-0">Showing first {{ students|length }} of {{ student_count }} students.</p>
+        {% endif %}
+    </div>
+    <div class="card-footer d-flex justify-content-between bg-transparent">
+        <a href="{% url 'fees:voucher_generate' %}" class="btn btn-outline-secondary">Back</a>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="klass" value="{{ klass.pk }}">
+            <input type="hidden" name="section" value="{{ section.pk|default:'' }}">
+            <input type="hidden" name="due_date" value="{{ due_date|date:'Y-m-d' }}">
+            <input type="hidden" name="notes" value="{{ notes }}">
+            {% if skip_existing %}<input type="hidden" name="skip_existing" value="on">{% endif %}
+            {% for head in heads %}<input type="hidden" name="fee_heads" value="{{ head.pk }}">{% endfor %}
+            <button type="submit" name="confirm" value="1" class="btn btn-success" {% if not student_count %}disabled{% endif %}>
+                <i class="bi bi-check2-circle me-1"></i>Generate {{ student_count }} Voucher(s)
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var klass = document.getElementById("id_klass");
+    var section = document.getElementById("id_section");
+    if (!klass || !section) return;
+    function sync() {
+        var val = klass.value;
+        Array.prototype.forEach.call(section.options, function (opt) {
+            if (!opt.value) return;
+            var show = !val || opt.dataset.klass === val;
+            opt.hidden = !show;
+            opt.disabled = !show;
+        });
+        if (section.selectedOptions[0] && section.selectedOptions[0].hidden) section.value = "";
+    }
+    klass.addEventListener("change", sync);
+    sync();
+})();
+</script>
+{% endblock %}

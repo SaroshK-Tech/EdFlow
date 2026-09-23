@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="alert alert-danger d-flex gap-2 align-items-start">
+            <i class="bi bi-exclamation-triangle mt-1"></i>
+            <div>Delete <strong>{{ timetable.name }}</strong>? All {{ timetable.entries.count }} entries will be removed.
+            This action cannot be undone.</div>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit"><i class="bi bi-trash me-1"></i>Delete timetable</button>
+            <a href="{% url 'timetable:list' %}" class="btn btn-link text-muted">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

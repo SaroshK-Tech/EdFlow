@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">{% include "partials/field.html" with field=form.channel %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.priority %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.to_whom %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.klass %}</div>
+                <div class="col-md-12">
+                    <div class="border rounded p-2 bg-light-subtle small text-muted">
+                        <i class="bi bi-eye me-1"></i>Preview placeholders: {student_name}, {parent_name}, {class_name}, {admission_number}, {school_name}, {date}
+                    </div>
+                </div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.template %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.message %}</div>
+                <div class="col-md-12">{% include "partials/field.html" with field=form.manual_numbers %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.schedule_date %}</div>
+                <div class="col-md-6">{% include "partials/field.html" with field=form.schedule_time %}</div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'communication:list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Queue Messages</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

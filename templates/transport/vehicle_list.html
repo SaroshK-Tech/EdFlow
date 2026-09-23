@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Vehicle" primary_url="transport:vehicle_add" %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-bus-front"></i></span>
+            <div><div class="stat-value">{{ vehicles|length }}</div><div class="stat-label">Vehicles</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-signpost-split"></i></span>
+            <div><div class="stat-value">{{ route_count }}</div><div class="stat-label">Routes</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-person-vcard"></i></span>
+            <div><div class="stat-value">{{ driver_count }}</div><div class="stat-label">Drivers</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-person-check"></i></span>
+            <div><div class="stat-value">{{ active_assigns }}</div><div class="stat-label">Active Assignments</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <div class="d-flex gap-3">
+                <a href="{% url 'transport:routes' %}" class="small text-decoration-none">Routes →</a>
+                <a href="{% url 'transport:drivers' %}" class="small text-decoration-none">Drivers →</a>
+                <a href="{% url 'transport:assign' %}" class="small text-decoration-none">Assignments →</a>
+                <a href="{% url 'transport:reports' %}" class="small text-decoration-none">Reports →</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Registration</th>
+                        <th>Model</th>
+                        <th>Capacity</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for vehicle in vehicles %}
+                    <tr>
+                        <td class="fw-semibold">{{ vehicle.registration_number }}</td>
+                        <td>{{ vehicle.model|default:"—" }}</td>
+                        <td>{{ vehicle.capacity }}</td>
+                        <td>{{ vehicle.owner|default:"—" }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if vehicle.status == 'active' %}success{% elif vehicle.status == 'maintenance' %}warning{% else %}secondary{% endif %}">{{ vehicle.get_status_display }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'transport:vehicle_edit' vehicle.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'transport:vehicle_delete' vehicle.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-bus-front"></i>
+                            {% if q %}No vehicles match "{{ q }}".{% else %}No vehicles yet — add your school buses and vans.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

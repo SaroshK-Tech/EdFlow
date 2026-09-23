@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header no-print">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ exam.exam_type.name }}{% if exam.academic_year %} · {{ exam.academic_year }}{% endif %} · {{ results|length }} student(s)</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'results:sheet_pdf' exam.pk %}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+        <a class="btn btn-outline-secondary" href="{% url 'results:detail' exam.pk %}"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+    </div>
+</div>
+
+<div class="print-sheet">
+    <div class="print-sheet-head">
+        <div>
+            <div class="print-sheet-school">{{ school.name|default:"School" }}</div>
+            <div class="print-sheet-sub">Result Sheet — {{ exam.name }} ({{ exam.get_status_display }})</div>
+        </div>
+    </div>
+    <table class="print-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Admission No</th>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Total</th>
+                <th>%</th>
+                <th>Cum %</th>
+                <th>Grade</th>
+                <th>GPA</th>
+                <th>Pos</th>
+                <th>Result</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in results %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ r.student.admission_number }}</td>
+                <td>{{ r.student.full_name }}</td>
+                <td>{{ r.student.klass|default:"—" }}</td>
+                <td>{{ r.total_obtained }}/{{ r.total_max }}</td>
+                <td>{{ r.percentage }}%</td>
+                <td>{{ r.weighted_percentage }}{% if r.weighted_percentage %}%{% endif %}</td>
+                <td>{{ r.grade|default:"—" }}</td>
+                <td>{{ r.gpa|default:"—" }}</td>
+                <td>{{ r.class_position|default:"—" }}</td>
+                <td>{% if r.is_pass %}Pass{% else %}Fail{% endif %}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="11" class="text-center">No results generated yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.print-sheet { max-width: 900px; margin: 0 auto; }
+.print-sheet-head { margin-bottom: 1rem; border-bottom: 2px solid #059669; padding-bottom: .6rem; }
+.print-sheet-school { font-size: 1.15rem; font-weight: 700; color: #065f46; }
+.print-sheet-sub { font-size: .9rem; font-weight: 600; }
+.print-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.print-table th, .print-table td { border: 1px solid #d1d5db; padding: .35rem .5rem; }
+.print-table thead th { background: #ecfdf5; }
+@media print {
+    .app-sidebar, .app-sidebar-backdrop, .app-topbar, .app-footer, .no-print, .toast-container { display: none !important; }
+    .app-content { padding: 0 !important; }
+    .print-sheet { box-shadow: none !important; }
+    @page { size: A4 landscape; margin: 10mm; }
+}
+</style>
+{% endblock %}

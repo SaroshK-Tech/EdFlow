@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="{% url 'exams:detail' exam.pk %}"><i class="bi bi-arrow-left me-1"></i>Exam</a>
+        <a class="btn btn-outline-primary" href="{% url 'results:sheet' exam.pk %}" target="_blank"><i class="bi bi-printer me-1"></i>Result Sheet</a>
+        <form method="post" action="{% url 'results:generate' exam.pk %}">
+            {% csrf_token %}
+            <button class="btn btn-outline-primary" type="submit"><i class="bi bi-gear me-1"></i>{% if results %}Recompute{% else %}Generate{% endif %}</button>
+        </form>
+        {% if exam.status == "approved" and results %}
+            <form method="post" action="{% url 'exams:status' exam.pk 'published' %}">
+                {% csrf_token %}<button class="btn btn-success" type="submit"><i class="bi bi-megaphone me-1"></i>Publish</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+{% if exam.status != "draft" %}
+    <div class="alert alert-{% if exam.status == 'published' %}success{% else %}info{% endif %} border-0">
+        <i class="bi bi-{% if exam.status == 'published' %}megaphone{% else %}check2-circle{% endif %} me-1"></i>
+        Exam is <strong>{{ exam.get_status_display }}</strong>.
+        {% if exam.status != "published" %}Results become final once published.{% endif %}
+    </div>
+{% endif %}
+
+{% if klasses %}
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    {% for id, name in klasses %}
+        <a class="btn btn-sm btn-outline-primary" target="_blank" href="{% url 'results:tabulation' exam.pk id %}"><i class="bi bi-table me-1"></i>Tabulation — {{ name }}</a>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="small text-muted">{{ results|length }} result(s)</span>
+            <a href="{% url 'exams:marks_entry' exam.pk %}" class="small text-decoration-none">Enter marks →</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Total</th>
+                        <th>%</th>
+                        <th>Cum %</th>
+                        <th>Grade</th>
+                        <th>GPA</th>
+                        <th>Position</th>
+                        <th>Pass</th>
+                        <th class="text-end">Report Card</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for r in results %}
+                    <tr>
+                        <td class="text-muted">{{ forloop.counter }}</td>
+                        <td class="fw-semibold"><a class="text-decoration-none" href="{% url 'students:detail' r.student.pk %}">{{ r.student.full_name }}</a></td>
+                        <td>{{ r.student.klass|default:"—" }}{% if r.student.section %} / {{ r.student.section.name }}{% endif %}</td>
+                        <td>{{ r.total_obtained }} / {{ r.total_max }}</td>
+                        <td class="fw-semibold">{{ r.percentage }}%</td>
+                        <td>{{ r.weighted_percentage }}{% if r.weighted_percentage %}%{% endif %}</td>
+                        <td><span class="badge text-bg-light">{{ r.grade|default:"—" }}</span></td>
+                        <td>{{ r.gpa|default:"—" }}</td>
+                        <td>{{ r.class_position|default:"—" }}</td>
+                        <td>
+                            {% if r.is_pass %}<span class="badge text-bg-success">Pass</span>
+                            {% else %}<span class="badge text-bg-danger">Fail</span>{% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'results:report_card' exam.pk r.student.pk %}" class="btn btn-sm btn-outline-primary" target="_blank"><i class="bi bi-file-earmark-text me-1"></i>Report Card</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="11">
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard-data"></i>
+                            No results yet — enter marks for each subject, then click “Generate”.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

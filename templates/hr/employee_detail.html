@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="{% url 'hr:employee_edit' employee.pk %}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:qualification_add' %}?staff={{ employee.pk }}"><i class="bi bi-mortarboard me-1"></i>Add Qualification</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:experience_add' %}?staff={{ employee.pk }}"><i class="bi bi-briefcase me-1"></i>Add Experience</a>
+        <a class="btn btn-outline-secondary" href="{% url 'hr:employees' %}"><i class="bi bi-arrow-left me-1"></i>All Employees</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if employee.photograph %}
+                    <img src="{{ employee.photograph.url }}" alt="{{ employee.full_name }}" class="rounded-circle mb-3" style="width:120px;height:120px;object-fit:cover;">
+                {% else %}
+                    <div class="rounded-circle bg-primary-soft mx-auto mb-3 d-flex align-items-center justify-content-center text-primary" style="width:120px;height:120px;font-size:2.5rem;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% endif %}
+                <h5>{{ employee.full_name }}</h5>
+                <p class="text-muted mb-1"><span class="badge text-bg-light">{{ employee.employee_code }}</span></p>
+                <p class="mb-1">
+                    {% if employee.is_teacher %}<span class="badge text-bg-primary">Teacher</span>{% endif %}
+                    <span class="badge text-bg-{% if employee.status == 'active' %}success{% elif employee.status == 'left' %}secondary{% else %}danger{% endif %}">{{ employee.get_status_display }}</span>
+                </p>
+                <hr>
+                <div class="text-start small">
+                    <div class="d-flex justify-content-between"><span class="text-muted">Designation</span><span>{{ employee.designation|default:"—" }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Department</span><span>{{ employee.department|default:"—" }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Joined</span><span>{{ employee.joining_date|default:"—" }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Salary</span><span>{{ employee.salary|floatformat:2 }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Phone</span><span>{{ employee.phone|default:"—" }}</span></div>
+                    <div class="d-flex justify-content-between"><span class="text-muted">Email</span><span>{{ employee.email|default:"—" }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-mortarboard me-1"></i>Qualifications</span>
+                <a href="{% url 'hr:qualification_add' %}?staff={{ employee.pk }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i></a>
+            </div>
+            <div class="card-body">
+                {% for q in qualifications %}
+                    <div class="d-flex justify-content-between align-items-start py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">{{ q.qualification }}
+                                {% if q.is_certified %}<span class="badge text-bg-success ms-1">Certified</span>{% endif %}
+                            </div>
+                            <div class="small text-muted">{{ q.institution|default:"—" }}
+                                {% if q.year_completed %} · {{ q.year_completed }}{% endif %}
+                                {% if q.grade %} · {{ q.grade }}{% endif %}
+                            </div>
+                            {% if q.notes %}<div class="small">{{ q.notes }}</div>{% endif %}
+                        </div>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'hr:qualification_edit' q.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'hr:qualification_delete' q.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="bi bi-mortarboard"></i>
+                        No qualifications recorded.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-briefcase me-1"></i>Work Experience
+                    <span class="badge text-bg-light ms-1">{{ total_years|floatformat:1 }} yrs total</span>
+                </span>
+                <a href="{% url 'hr:experience_add' %}?staff={{ employee.pk }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg"></i></a>
+            </div>
+            <div class="card-body">
+                {% for e in experiences %}
+                    <div class="d-flex justify-content-between align-items-start py-2 border-bottom">
+                        <div>
+                            <div class="fw-semibold">{{ e.job_title|default:e.organisation }}
+                                {% if e.current %}<span class="badge text-bg-primary ms-1">Current</span>{% endif %}
+                            </div>
+                            <div class="small text-muted">{{ e.organisation }}</div>
+                            <div class="small text-muted">
+                                {{ e.start_date|default:"—" }}{% if e.end_date %} → {{ e.end_date }}{% elif e.current %} → Present{% endif %}
+                            </div>
+                            {% if e.description %}<div class="small">{{ e.description }}</div>{% endif %}
+                        </div>
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'hr:experience_edit' e.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'hr:experience_delete' e.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="bi bi-briefcase"></i>
+                        No work experience recorded.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

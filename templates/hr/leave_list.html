@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'hr:leave_balances' %}"><i class="bi bi-pie-chart me-1"></i>Balances</a>
+        <a class="btn btn-primary" href="{% url 'hr:leave_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Leave</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            {% include "partials/search_box.html" with filter_params=filter_params %}
+            <form method="get" class="d-flex align-items-center gap-1">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Staff</th>
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Days</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Reviewed</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for leave in leaves %}
+                    <tr>
+                        <td class="fw-semibold">{{ leave.staff.full_name }} <span class="badge text-bg-light">{{ leave.staff.employee_code }}</span></td>
+                        <td>{{ leave.leave_type.name }}{% if not leave.leave_type.paid %} <span class="badge text-bg-secondary">Unpaid</span>{% endif %}</td>
+                        <td>{{ leave.start_date }} → {{ leave.end_date }}</td>
+                        <td><span class="badge text-bg-light">{{ leave.days }}</span></td>
+                        <td class="text-muted small">{{ leave.reason|default:"—"|truncatechars:60 }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if leave.status == 'approved' %}success{% elif leave.status == 'rejected' %}danger{% elif leave.status == 'cancelled' %}secondary{% else %}warning{% endif %}">{{ leave.get_status_display }}</span>
+                        </td>
+                        <td class="small text-muted">
+                            {% if leave.reviewed_by %}{{ leave.reviewed_by }}{% if leave.reviewed_on %}<br>{{ leave.reviewed_on }}{% endif %}{% else %}—{% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            {% if leave.status == 'pending' %}
+                                <form method="post" action="{% url 'hr:leave_status' leave.pk 'approved' %}" class="d-inline">
+                                    {% csrf_token %}<button class="btn btn-sm btn-outline-success" title="Approve"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                <form method="post" action="{% url 'hr:leave_status' leave.pk 'rejected' %}" class="d-inline">
+                                    {% csrf_token %}<button class="btn btn-sm btn-outline-danger" title="Reject"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            {% endif %}
+                            <a href="{% url 'hr:leave_edit' leave.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-x"></i>
+                            {% if q or current_status %}No leave requests match the current filter.{% else %}No leave requests yet — apply via "Add Leave".{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

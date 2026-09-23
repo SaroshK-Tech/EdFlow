@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Section" primary_url="academics:section_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">Tabs: <a href="{% url 'academics:classes' %}" class="text-decoration-none">Classes</a> · <a href="{% url 'academics:subjects' %}" class="text-decoration-none">Subjects</a> · <a href="{% url 'academics:rooms' %}" class="text-decoration-none">Rooms</a></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Class</th>
+                        <th>Room</th>
+                        <th>Students</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for section in sections %}
+                    <tr>
+                        <td class="fw-semibold">{{ section.name }}</td>
+                        <td>{{ section.klass.name }}</td>
+                        <td>{{ section.room|default:"—" }}</td>
+                        <td>{{ section.students.count }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'academics:section_edit' section.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-ui-splits"></i>
+                            {% if q %}No sections match "{{ q }}".{% else %}No sections yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

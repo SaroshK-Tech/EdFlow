@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <span class="badge text-bg-warning me-1">Open: {{ open_count }}</span>
+                <span class="badge text-bg-success">Completed: {{ completed_count }}</span>
+            </div>
+            <a class="btn btn-primary" href="{% url 'discipline:action_add' %}"><i class="bi bi-plus-lg me-1"></i>Take Action</a>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ actions|length }} action(s) shown</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Kind</th>
+                        <th>Description</th>
+                        <th>Period</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for a in actions %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'discipline:student' a.student.pk %}" class="fw-semibold text-decoration-none">{{ a.student.full_name }}</a>
+                            <div class="small text-muted">{{ a.student.admission_number }}</div>
+                        </td>
+                        <td>{{ a.date }}</td>
+                        <td><span class="badge text-bg-light">{{ a.get_kind_display }}</span></td>
+                        <td>{{ a.description|default:"—" }}</td>
+                        <td class="small">
+                            {% if a.start_date %}{{ a.start_date }}{% endif %}
+                            {% if a.end_date %} → {{ a.end_date }}{% else %}{% if a.start_date %} → open{% endif %}{% endif %}
+                        </td>
+                        <td>
+                            {% if a.completed %}<span class="badge text-bg-success">Completed</span>{% else %}<span class="badge text-bg-danger">Pending</span>{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard-check"></i>
+                            {% if q %}No actions match "{{ q }}".{% else %}No disciplinary actions recorded yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

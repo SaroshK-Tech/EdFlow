@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Record Payment" primary_url="fees:payment_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">Collected: {{ total }}</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Student</th>
+                        <th>Fee Head</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Date</th>
+                        <th>By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for p in payments %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ p.receipt_number }}</span></td>
+                        <td>
+                            <a href="{% url 'students:detail' p.student.pk %}" class="fw-semibold text-decoration-none">{{ p.student.full_name }}</a>
+                        </td>
+                        <td>{{ p.fee_head.name }}</td>
+                        <td class="fw-semibold">{{ p.amount }}</td>
+                        <td><span class="badge text-bg-secondary">{{ p.get_method_display }}</span></td>
+                        <td>{{ p.paid_on }}</td>
+                        <td class="small text-muted">{{ p.received_by|default:"—" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-cash-coin"></i>
+                            {% if q %}No payments match "{{ q }}".{% else %}No payments recorded yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

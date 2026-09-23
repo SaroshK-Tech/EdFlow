@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Achievement" primary_url="discipline:achievement_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">Total house points awarded: <strong>{{ total_points }}</strong></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Achievement</th>
+                        <th class="text-end">House Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for a in achievements %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'discipline:student' a.student.pk %}" class="fw-semibold text-decoration-none">{{ a.student.full_name }}</a>
+                            <div class="small text-muted">{{ a.student.admission_number }}</div>
+                        </td>
+                        <td>{{ a.date }}</td>
+                        <td><span class="badge text-bg-light">{{ a.get_category_display }}</span></td>
+                        <td>
+                            <i class="bi bi-trophy text-warning"></i>
+                            {{ a.title }}
+                            <div class="small text-muted">{{ a.description|default:""|truncatechars:80 }}</div>
+                        </td>
+                        <td class="text-end">{% if a.house_points %}<span class="badge text-bg-success">{{ a.house_points }} pts</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-trophy"></i>
+                            {% if q %}No achievements match "{{ q }}".{% else %}No achievements recorded yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

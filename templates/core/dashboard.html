@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% load static %}
+{% load core_extras %}
+
+{% block content %}
+<!-- Role-specific stat counters -->
+{% if stats.is_admin %}
+<div class="row g-4 mb-4">
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-indigo">
+            <div class="stat-tile-label">Students</div>
+            <div class="stat-tile-value">{{ stats.students_total|default:0 }}</div>
+            <i class="bi bi-graduation-cap stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-amber">
+            <div class="stat-tile-label">Teachers</div>
+            <div class="stat-tile-value">{{ stats.teachers_total|default:0 }}</div>
+            <i class="bi bi-person-video3 stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-green">
+            <div class="stat-tile-label">Collected today</div>
+            <div class="stat-tile-value">{{ stats.fees_collected_today|default:0 }}</div>
+            <i class="bi bi-cash-coin stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-rose">
+            <div class="stat-tile-label">Pending admissions</div>
+            <div class="stat-tile-value">{{ stats.admissions_pending|default:0 }}</div>
+            <i class="bi bi-clipboard-check stat-tile-bg"></i>
+        </div>
+    </div>
+</div>
+{% elif stats.my_staff %}
+<div class="row g-4 mb-4">
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-indigo">
+            <div class="stat-tile-label">Lessons today</div>
+            <div class="stat-tile-value">{{ stats.my_lessons_today|length }}</div>
+            <i class="bi bi-calendar-week stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-amber">
+            <div class="stat-tile-label">Homework due today</div>
+            <div class="stat-tile-value">{{ stats.homework_due_today|default:0 }}</div>
+            <i class="bi bi-journal-text stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-green">
+            <div class="stat-tile-label">Attendance records</div>
+            <div class="stat-tile-value">{{ stats.attendance_total|default:0 }}</div>
+            <i class="bi bi-calendar-check stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-rose">
+            <div class="stat-tile-label">Published routine entries</div>
+            <div class="stat-tile-value">{{ stats.routine_grid|length|add:stats.routine_periods|length }}</div>
+            <i class="bi bi-calendar3 stat-tile-bg"></i>
+        </div>
+    </div>
+</div>
+{% elif stats.my_parent %}
+<div class="row g-4 mb-4">
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-indigo">
+            <div class="stat-tile-label">My children</div>
+            <div class="stat-tile-value">{{ stats.children_rows|length }}</div>
+            <i class="bi bi-people stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-green">
+            <div class="stat-tile-label">Present today</div>
+            <div class="stat-tile-value">{{ stats.children_present }}</div>
+            <i class="bi bi-person-check stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-amber">
+            <div class="stat-tile-label">Fee balance</div>
+            <div class="stat-tile-value">{{ stats.children_balance }}</div>
+            <i class="bi bi-cash-coin stat-tile-bg"></i>
+        </div>
+    </div>
+    <div class="col col-lg-3">
+        <div class="stat-tile stat-tile-rose">
+            <div class="stat-tile-label">Latest results</div>
+            <div class="stat-tile-value">{{ stats.children_results }}</div>
+            <i class="bi bi-clipboard-data stat-tile-bg"></i>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Role cards (quick links) -->
+<div class="row g-3 mb-4">
+    {% for card in role_cards %}
+        <div class="col-6 col-lg-3">
+            <a href="{% url card.url %}" class="text-decoration-none">
+                <div class="card h-100 hover-lift">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <span class="stat-icon bg-primary-soft"><i class="bi bi-{{ card.icon }}"></i></span>
+                        <span class="fw-semibold">{{ card.label }}</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Teacher: today's lessons -->
+{% if stats.my_lessons_today %}
+<div class="bg-white rounded-2xl border border-gray-200 p-3 p-md-4 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h2 class="m-0 panel-title">My lessons today</h2>
+        <span class="date-pill">{% now "F j, Y" %}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Period</th><th>Class</th><th>Section</th><th>Subject</th><th>Room</th></tr>
+            </thead>
+            <tbody>
+            {% for lesson in stats.my_lessons_today %}
+                <tr>
+                    <td class="fw-semibold">P{{ lesson.period.order }}</td>
+                    <td>{{ lesson.klass.name }}</td>
+                    <td>{{ lesson.section.name|default:"—" }}</td>
+                    <td>{{ lesson.subject.name }}</td>
+                    <td>{{ lesson.room.name|default:"—" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Parent: children snapshot -->
+{% if stats.children_rows %}
+<div class="bg-white rounded-2xl border border-gray-200 p-3 p-md-4 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h2 class="m-0 panel-title">My children</h2>
+        <span class="date-pill">{% now "F j, Y" %}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Child</th><th>Class</th><th>Today</th><th>Fee balance</th><th>Latest result</th></tr>
+            </thead>
+            <tbody>
+            {% for row in stats.children_rows %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ row.student.full_name }}</div>
+                        <div class="small text-muted">{{ row.student.admission_number }}</div>
+                    </td>
+                    <td>{{ row.student.klass.name|default:"—" }}</td>
+                    <td>
+                        {% if row.marked %}{{ row.present }}/{{ row.marked }} present{% else %}<span class="text-muted">not marked</span>{% endif %}
+                    </td>
+                    <td class="{% if row.balance > 0 %}text-danger fw-semibold{% else %}text-success{% endif %}">{{ row.balance }}</td>
+                    <td>
+                        {% if row.latest %}{{ row.latest.percentage }}% ({{ row.latest.exam.name }}){% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Student: personal timetable -->
+{% if stats.my_timetable %}
+<div class="bg-white rounded-2xl border border-gray-200 p-3 p-md-4 shadow-sm mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+        <h2 class="m-0 panel-title">My timetable today</h2>
+        <span class="date-pill">{% now "F j, Y" %}</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Period</th><th>Subject</th><th>Teacher</th><th>Room</th></tr>
+            </thead>
+            <tbody>
+            {% for entry in stats.my_timetable %}
+                <tr>
+                    <td class="fw-semibold">P{{ entry.period.order }}</td>
+                    <td>{{ entry.subject.name }}</td>
+                    <td>{{ entry.teacher.full_name|default:entry.teacher }}</td>
+                    <td>{{ entry.room.name|default:"—" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Class Routine Matrix -->
+<div class="bg-white rounded-2xl border border-gray-200 p-3 p-md-4 shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <h2 class="m-0 panel-title">Class Routine Matrix</h2>
+        <span class="date-pill">{% now "F j, Y" %}</span>
+    </div>
+
+    {% if stats.routine_periods %}
+        <div class="table-responsive">
+            <table class="table routine-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Class</th>
+                        {% for p in stats.routine_periods %}
+                            <th>{{ p.time }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for klass in stats.routine_classes %}
+                        <tr>
+                            <td class="fw-semibold">{{ klass.name }}
+                                {% if klass.sections.exists %}<span class="text-muted">({{ klass.sections.count }} section)</span>{% endif %}
+                            </td>
+                            {% for p in stats.routine_periods %}
+                                {% with entry=stats.routine_grid|getitem:klass.id|getitem:p.id %}
+                                    <td>
+                                        {% if entry %}
+                                            <span class="badge text-bg-light d-block">{{ entry.subject.code|default:entry.subject }}</span>
+                                            <small class="text-muted">{{ entry.teacher.last_name|default:entry.teacher }}</small>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                {% endwith %}
+                            {% endfor %}
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="99" class="text-center text-muted py-4">No published routine yet. Generate it from the <a href="{% url 'timetable:index' %}">Timetable</a> module.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="routine-empty">
+            <i class="bi bi-calendar-plus"></i>
+            <p>Routine data grid maps loop here iteratively. Publish a timetable from the
+                <a href="{% url 'timetable:index' %}">Automatic Timetable</a> module.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

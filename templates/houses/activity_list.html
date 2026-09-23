@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Activity" primary_url="houses:activity_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Activity</th>
+                        <th>Kind</th>
+                        <th>House</th>
+                        <th>Results</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for activity in activities %}
+                    <tr>
+                        <td>{{ activity.date|date:"d M Y" }}</td>
+                        <td class="fw-semibold">{{ activity.name }}</td>
+                        <td><span class="badge text-bg-{% if activity.kind == 'competition' %}warning{% elif activity.kind == 'practice' %}secondary{% else %}info{% endif %}">{{ activity.get_kind_display }}</span></td>
+                        <td>{{ activity.house|default:"All houses" }}</td>
+                        <td>
+                            {% for result in activity.results.all %}
+                                <span class="badge text-bg-light me-1">#{{ result.rank }} {{ result.house.name }} (+{{ result.points_awarded }})</span>
+                            {% empty %}
+                                —
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-calendar-event"></i>
+                            No activities yet — add events, competitions and practices.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

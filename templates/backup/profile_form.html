@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% for field in form %}
+                {% include "partials/field.html" with field=field %}
+            {% endfor %}
+            <div class="alert alert-info d-flex gap-2 align-items-start small">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    Backups are written <strong>offline</strong> to the destination folder. A network share
+                    (UNC path like <code>\\server\edflow_backup</code>) is saved directly by this server, so the
+                    share must be writable by the account running EdFlow. To schedule automatic backups, create a
+                    Windows Task Scheduler entry that runs
+                    <code>.venv\Scripts\python.exe manage.py backup_now --all</code>.
+                </div>
+            </div>
+            <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg me-1"></i>Save</button>
+            <a href="{% url 'backup:list' %}" class="btn btn-link text-muted">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

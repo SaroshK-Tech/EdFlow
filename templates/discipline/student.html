@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Report Incident" primary_url="discipline:add" %}
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Incidents</span>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'students:detail' student.pk %}"><i class="bi bi-person me-1"></i>Student Profile</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                {% for incident in incidents %}
+                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div>
+                            <a href="{% url 'discipline:detail' incident.pk %}" class="fw-semibold text-decoration-none">{{ incident.title }}</a>
+                            <div class="small text-muted">{{ incident.date }} · {{ incident.get_type_display }}</div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge text-bg-{% if incident.severity == 'severe' %}danger{% elif incident.severity == 'moderate' %}warning{% else %}info{% endif %}">{{ incident.get_severity_display }}</span><br>
+                            <span class="badge text-bg-{% if incident.status == 'open' %}danger{% elif incident.status == 'under_review' %}warning{% elif incident.status == 'resolved' %}success{% else %}secondary{% endif %}">{{ incident.get_status_display }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="bi bi-check2-circle"></i>
+                        <p>No incidents on record.</p>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Open Follow-ups</span></div>
+            <div class="card-body">
+                {% for item in open_followups %}
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <a href="{% url 'discipline:detail' item.incident.pk %}" class="text-decoration-none">{{ item.incident.title }}</a>
+                            <div class="small text-muted">{{ item.note|default:""|truncatechars:60 }}</div>
+                        </div>
+                        <span class="badge text-bg-warning">Due {{ item.due_date|default:"—" }}</span>
+                    </div>
+                {% empty %}
+                    <p class="text-muted small mb-0">No open follow-ups.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header"><span class="fw-semibold">Warnings</span></div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                {% for w in warnings %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div>
+                            <span class="badge text-bg-{% if w.type == 'final' %}danger{% elif w.type == 'written' %}warning{% else %}secondary{% endif %} me-2">{{ w.get_type_display }}</span>
+                            {{ w.details|default:"—"|truncatechars:60 }}
+                        </div>
+                        <span class="small text-muted">{{ w.date }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted small">No warnings.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-header"><span class="fw-semibold">Disciplinary Actions</span></div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                {% for a in actions %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div>
+                            <span class="badge text-bg-light me-2">{{ a.get_kind_display }}</span>
+                            {{ a.description|default:"—"|truncatechars:60 }}
+                        </div>
+                        {% if a.completed %}<span class="badge text-bg-success">Done</span>{% else %}<span class="badge text-bg-danger">Pending</span>{% endif %}
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted small">No actions recorded.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Achievements</span>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'discipline:achievement_add' %}"><i class="bi bi-plus-lg me-1"></i>Add</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                {% for a in achievements %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <div><i class="bi bi-trophy text-warning me-2"></i>{{ a.title }}</div>
+                        <span>{% if a.house_points %}<span class="badge text-bg-success">{{ a.house_points }} pts</span>{% endif %}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-muted small">No achievements yet.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% load static %}
+{% load core_extras %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Progress Record" primary_url="progress:add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ students|length }} student(s) shown</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Admission</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Latest Overall</th>
+                        <th>Trend</th>
+                        <th>Records</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for s in students %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ s.admission_number }}</span></td>
+                        <td>
+                            <a href="{% url 'progress:detail' s.pk %}" class="fw-semibold text-decoration-none">{{ s.full_name }}</a>
+                        </td>
+                        <td>{{ s.klass|default:"—" }}{% if s.section %} / {{ s.section.name }}{% endif %}</td>
+                        <td>
+                            {% if latest_pct|getitem:s.pk is not None %}
+                                <span class="badge text-bg-{% if latest_pct|getitem:s.pk >= 60 %}success{% elif latest_pct|getitem:s.pk >= 40 %}warning{% else %}danger{% endif %}">{{ latest_pct|getitem:s.pk }}%</span>
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td style="width: 140px;">
+                            <canvas class="spark" height="36"{% if trend|getitem:s.pk %} data-spark="{{ trend|getitem:s.pk }}"{% endif %}></canvas>
+                        </td>
+                        <td>
+                            {% if record_counts|getitem:s.pk %}
+                                <a href="{% url 'progress:records' s.pk %}" class="text-decoration-none">{{ record_counts|getitem:s.pk }} record(s)</a>
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'progress:detail' s.pk %}" class="btn btn-sm btn-outline-primary" title="Progress report"><i class="bi bi-graph-up"></i></a>
+                            <a href="{% url 'progress:records' s.pk %}" class="btn btn-sm btn-outline-secondary" title="Records"><i class="bi bi-list-ol"></i></a>
+                            <a href="{% url 'progress:add' %}?student={{ s.pk }}" class="btn btn-sm btn-outline-success" title="Add record"><i class="bi bi-plus-lg"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            {% if q %}No students match "{{ q }}".{% else %}No students yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+    if (window.Chart === undefined) return;
+    document.querySelectorAll("canvas.spark").forEach(function (canvas) {
+        var raw = canvas.dataset.spark;
+        if (!raw) return;
+        var values;
+        try { values = JSON.parse(raw); } catch (e) { return; }
+        if (!values || !values.length) return;
+        new Chart(canvas, {
+            type: "line",
+            data: {
+                labels: values.map(function (_, i) { return i + 1; }),
+                datasets: [{
+                    data: values,
+                    borderColor: "#059669",
+                    backgroundColor: "rgba(5,150,105,.12)",
+                    fill: true,
+                    pointRadius: 0,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: {
+                    x: { display: false },
+                    y: { display: false, min: 0, max: 100 }
+                }
+            }
+        });
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% load core_extras %}
+<div class="voucher-sheet">
+    <div class="voucher-head">
+        <div class="voucher-school">
+            {% if school.logo %}
+                <img src="{{ school.logo.url }}" alt="{{ school.name }}" class="voucher-logo">
+            {% endif %}
+            <div>
+                <div class="voucher-school-name">{{ school.name|default:"School" }}</div>
+                {% if school.address %}<div class="voucher-school-meta">{{ school.address }}</div>{% endif %}
+                <div class="voucher-school-meta">
+                    {% if school.phone %}Phone: {{ school.phone }}{% endif %}
+                    {% if school.email %} · {{ school.email }}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="voucher-tag">
+            <div class="voucher-tag-title">FEE VOUCHER</div>
+            <div class="voucher-tag-no">{{ voucher.voucher_number }}</div>
+        </div>
+    </div>
+
+    <div class="voucher-meta-row">
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Student</div>
+            <div class="voucher-meta-value">{{ voucher.student.full_name }}</div>
+        </div>
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Admission No</div>
+            <div class="voucher-meta-value">{{ voucher.student.admission_number }}</div>
+        </div>
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Class / Section</div>
+            <div class="voucher-meta-value">{{ voucher.student.klass|default:"—" }}{% if voucher.student.section %} / {{ voucher.student.section.name }}{% endif %}</div>
+        </div>
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Roll No</div>
+            <div class="voucher-meta-value">{{ voucher.student.roll_number|default:"—" }}</div>
+        </div>
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Issued On</div>
+            <div class="voucher-meta-value">{{ voucher.issued_on }}</div>
+        </div>
+        <div class="voucher-meta-block">
+            <div class="voucher-meta-label">Due Date</div>
+            <div class="voucher-meta-value voucher-due">{{ voucher.due_date }}</div>
+        </div>
+    </div>
+
+    <table class="voucher-table">
+        <thead>
+            <tr>
+                <th style="width:40px;">#</th>
+                <th>Fee Particulars</th>
+                <th class="text-end">Amount</th>
+                <th class="text-end">Discount</th>
+                <th class="text-end">Net Payable</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in voucher.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ item.fee_head.name }}</td>
+                    <td class="text-end">{{ item.amount|floatformat:2 }}</td>
+                    <td class="text-end">{{ item.discount|floatformat:2 }}</td>
+                    <td class="text-end">{{ item.net|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5" class="text-center text-muted">No fee lines on this voucher.</td></tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" class="text-end fw-semibold">Total</td>
+                <td class="text-end fw-semibold">{{ voucher.subtotal|floatformat:2 }}</td>
+                <td class="text-end fw-semibold">{{ voucher.total_discount|floatformat:2 }}</td>
+                <td class="text-end fw-bold voucher-total">{{ voucher.total|floatformat:2 }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if school.bank_name or school.bank_account_number %}
+    <div class="voucher-bank">
+        <div class="voucher-bank-title"><i class="bi bi-bank"></i> Pay to the school account</div>
+        <div class="voucher-bank-grid">
+            {% if school.bank_holder %}<div><span>Account Holder</span>{{ school.bank_holder }}</div>{% endif %}
+            {% if school.bank_name %}<div><span>Bank</span>{{ school.bank_name }}</div>{% endif %}
+            {% if school.bank_branch %}<div><span>Branch</span>{{ school.bank_branch }}</div>{% endif %}
+            {% if school.bank_account_number %}<div><span>Account No</span>{{ school.bank_account_number }}</div>{% endif %}
+            {% if school.bank_ifsc %}<div><span>IFSC</span>{{ school.bank_ifsc }}</div>{% endif %}
+        </div>
+        <div class="voucher-bank-note">Quote voucher number <strong>{{ voucher.voucher_number }}</strong> on the payment/cheque.</div>
+    </div>
+    {% endif %}
+
+    {% if voucher.notes %}<div class="voucher-notes">Note: {{ voucher.notes }}</div>{% endif %}
+
+    <div class="voucher-signs">
+        <div class="voucher-sign"><span></span>Parent / Guardian</div>
+        <div class="voucher-sign"><span></span>Authorised Signatory</div>
+    </div>
+</div>

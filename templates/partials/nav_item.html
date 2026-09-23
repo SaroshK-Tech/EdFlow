@@ -1,0 +1,7 @@
+{% load static %}
+{% load core_extras %}
+{% url_or_empty url_name arg as href %}{% if href %}
+<a class="nav-item {% if request.resolver_match.namespace == active_namespace or request.resolver_match.url_name == active_url_name %}active{% endif %}" href="{% if arg %}{% url url_name arg %}{% else %}{% url url_name %}{% endif %}">
+    <i class="bi bi-{{ icon }}"></i><span>{{ label }}</span>
+</a>
+{% endif %}

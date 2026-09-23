@@ -1,0 +1,30 @@
+# EdFlow By AlgoriSync
+
+# --- Core framework ---
+Django>=5.2,<6.0
+djangorestframework
+django-cors-headers
+channels
+channels-redis
+daphne
+whitenoise
+
+# --- Database ---
+psycopg[binary]
+
+# --- Background tasks / realtime ---
+celery
+redis
+
+# --- Timetable (flagship feature) ---
+ortools
+
+# --- Documents / exports / data ---
+reportlab
+openpyxl
+pandas
+numpy
+pillow
+
+# --- Utils ---
+python-dotenv

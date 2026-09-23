@@ -1,0 +1,12 @@
+Created PROJECT_STATUS.txt. Summary:
+Overall completion: ~83%
+Area	%
+Architecture (27 apps, spec §38)	100%
+Timetable generator (OR-Tools CP-SAT flagship)	95%
+Core school modules (CRUD + workflows)	82%
+SMS/communication (local Android gateway)	88%
+Notifications & realtime	90%
+UI polish / navigation	75%
+Reports / exports (PDF, Excel)	55%
+Automated tests	15%
+Facts: 148 models, 305 view classes, 347 URLs, 239 templates, 68 migrations applied, manage.py check passes.

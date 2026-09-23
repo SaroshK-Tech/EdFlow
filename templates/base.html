@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ school.name|default:"EdFlow" }}{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="app-body">
+
+<div class="app-wrapper">
+
+    {% if request.user.is_authenticated %}
+        {% include "partials/sidebar.html" %}
+    {% endif %}
+
+    <div class="app-main">
+        {% if request.user.is_authenticated %}
+            {% include "partials/topbar.html" %}
+        {% endif %}
+
+        <main class="app-content {% if not request.user.is_authenticated %}auth-only{% endif %}">
+            {% if messages %}
+                <div class="toast-container position-fixed top-0 end-0 p-3" id="msg-toasts">
+                    {% for message in messages %}
+                        <div class="toast align-items-center text-bg-{{ message.tags|default:'primary' }} border-0 show" role="alert">
+                            <div class="d-flex">
+                                <div class="toast-body">{{ message }}</div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        {% if request.user.is_authenticated %}
+            <footer class="app-footer">
+                © {% now "Y" %} {{ school.name|default:"EdFlow" }} · Offline-First School Management System
+            </footer>
+        {% endif %}
+    </div>
+</div>
+
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/app.js' %}"></script>
+{% if request.user.is_authenticated %}
+<script src="{% static 'js/realtime.js' %}"></script>
+{% endif %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>

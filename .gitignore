@@ -1,0 +1,49 @@
+# --- Python / Django ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.mo
+
+# --- Environment & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Static & media ---
+staticfiles/
+media/
+backups/
+*.log
+
+# --- Local databases ---
+*.sqlite3
+*.db
+
+# --- IDE / editor ---
+.idea/
+.vscode/
+*.swp
+
+# --- OS ---
+Thumbs.db
+.DS_Store
+
+# --- Redis / misc ---
+.rdb
+
+# --- Local dev artifacts (never needed in VCS) ---
+error.txt
+*.exe
+*.mp4
+
+# --- Demo production media (keep scripts/PNG storyboards, not footage) ---
+demo/work/audio/
+demo/work/clips/
+
+# --- Packaging docs ---
+# (project documentation lives in documentation/)

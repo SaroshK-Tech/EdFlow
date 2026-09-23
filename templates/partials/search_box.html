@@ -1,0 +1,10 @@
+<div class="d-flex align-items-center gap-2">
+    <form class="d-flex" method="get">
+        {% if filter_params %}{% for k, v in filter_params.items %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}{% endif %}
+        <div class="input-group input-group-sm" style="width: 260px;">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="search" class="form-control" name="q" value="{{ q }}" placeholder="{{ search_placeholder|default:'Search…' }}">
+        </div>
+    </form>
+    {% if q %}<a href="." class="small text-muted">Clear</a>{% endif %}
+</div>

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Template" primary_url="communication:template_add" %}
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Template</th><th>Channel</th><th class="text-center">Status</th><th>Type</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for template in templates %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ template.name }}</div>
+                        <div class="small text-muted">{{ template.body|truncatechars:80 }}</div>
+                    </td>
+                    <td><span class="badge text-bg-light border text-capitalize">{{ template.channel }}</span></td>
+                    <td class="text-center">
+                        {% if template.is_active %}<span class="badge text-bg-success">Active</span>
+                        {% else %}<span class="badge text-bg-secondary">Inactive</span>{% endif %}
+                    </td>
+                    <td>
+                        {% if template.is_system %}<span class="badge text-bg-primary-subtle text-primary">System</span>{% else %}<span class="badge text-bg-light border">Custom</span>{% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <a href="{% url 'communication:template_edit' template.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        {% if not template.is_system %}
+                            <a href="{% url 'communication:template_delete' template.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="bi bi-file-earmark-text"></i>
+                        {% if q %}No templates match "{{ q }}".{% else %}No templates yet.{% endif %}
+                    </div>
+                </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'communication:list' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to message center</a>
+</div>
+
+{% include "partials/pagination.html" %}
+{% endblock %}

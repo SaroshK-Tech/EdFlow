@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-md-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h4 mb-1">{{ page_title }}</h1>
+        <p class="text-muted mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2 mt-2 mt-md-0">
+        <a href="{% url 'timetable:generate' %}" class="btn btn-outline-primary"><i class="bi bi-magic me-1"></i>Generate another</a>
+        <a href="{% url 'timetable:detail' timetable.pk %}" class="btn btn-primary"><i class="bi bi-grid-3x3-gap me-1"></i>Review grid</a>
+        <a href="{% url 'timetable:print' timetable.pk %}" class="btn btn-outline-secondary"><i class="bi bi-printer me-1"></i>Print</a>
+    </div>
+</div>
+
+<div class="alert {% if summary.satisfied %}alert-success{% else %}alert-warning{% endif %} d-flex gap-2 align-items-start">
+    <i class="bi bi-{% if summary.satisfied %}check-circle{% else %}exclamation-triangle{% endif %} mt-1"></i>
+    <div>
+        <strong>
+            {% if summary.satisfied %}
+                Solution found — a complete timetable was generated.
+            {% else %}
+                No fully feasible solution within the solver budget.
+            {% endif %}
+        </strong>
+        <div class="small">CP-SAT status <code>{{ summary.status }}</code> ·
+        objective {{ summary.objective|default:"—" }} ·
+        searched {{ summary.solver_seconds }}s</div>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-primary-soft"><i class="bi bi-calendar3"></i></span>
+            <div><div class="stat-value">{{ summary.entries_total|default:"0" }}</div><div class="stat-label">Entries</div></div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-info-soft"><i class="bi bi-mortarboard"></i></span>
+            <div><div class="stat-value">{{ summary.classes_count|default:"0" }}</div><div class="stat-label">Classes</div></div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-success-soft"><i class="bi bi-person-workspace"></i></span>
+            <div><div class="stat-value">{{ summary.teachers_count|default:"0" }}</div><div class="stat-label">Teachers</div></div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-warning-soft"><i class="bi bi-door-open"></i></span>
+            <div><div class="stat-value">{{ summary.rooms_count|default:"0" }}</div><div class="stat-label">Rooms</div></div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-secondary-soft"><i class="bi bi-hourglass-split"></i></span>
+            <div><div class="stat-value">{{ summary.gap_counts.teacher_idle_slots|default:"0" }}</div><div class="stat-label">Teacher idle slots</div></div></div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="card stat-card"><span class="stat-icon bg-danger-soft"><i class="bi bi-lock"></i></span>
+            <div><div class="stat-value">{{ summary.locked_preserved|default:"0" }}</div><div class="stat-label">Locked kept</div></div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between">
+                <span>Run summary</span>
+                <span class="small text-muted">Generator: {{ summary.generator|default:"—" }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <tbody>
+                        <tr><th class="text-muted">Scheduled days</th><td>{% for d in summary.days %}{{ d }}{% if not forloop.last %}, {% endif %}{% endfor %}</td></tr>
+                        <tr><th class="text-muted">Periods per day</th><td>{{ summary.periods_count }}</td></tr>
+                        <tr><th class="text-muted">Subject requirements</th><td>{{ summary.requirements_count }}</td></tr>
+                        <tr><th class="text-muted">Free slots</th><td>{{ summary.free_slots }}</td></tr>
+                        <tr><th class="text-muted">Fallback room created</th><td>{{ summary.fallback_room_created|yesno:"Yes,No" }}</td></tr>
+                        <tr><th class="text-muted">Solver parameters</th>
+                            <td>
+                                <code class="small">random_seed={{ summary.params.random_seed|default:"42" }}</code> ·
+                                <code class="small">max_time={{ summary.params.max_time_seconds|default:"—" }}s</code> ·
+                                <code class="small">workers={{ summary.params.num_search_workers|default:"4" }}</code>
+                            </td></tr>
+                        <tr><th class="text-muted">Generated</th><td>{{ summary.generated_at }}</td></tr>
+                        {% if summary.note %}<tr><th class="text-muted">Note</th><td>{{ summary.note }}</td></tr>{% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header"><span class="fw-semibold">Issues</span></div>
+            <div class="card-body">
+                <h6 class="small text-uppercase text-muted">Infeasibility reasons</h6>
+                {% if summary.infeasibility_reasons %}
+                    <ul class="mb-3">
+                        {% for reason in summary.infeasibility_reasons %}
+                            <li class="small">{{ reason }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="small text-success mb-3"><i class="bi bi-check-circle me-1"></i>No hard-constraint violations.</p>
+                {% endif %}
+                <h6 class="small text-uppercase text-muted">Soft conflicts</h6>
+                {% if summary.soft_conflicts %}
+                    <ul class="mb-0">
+                        {% for conflict in summary.soft_conflicts %}
+                            <li class="small">{{ conflict }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="small text-success mb-0"><i class="bi bi-check-circle me-1"></i>No soft-constraint violations.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

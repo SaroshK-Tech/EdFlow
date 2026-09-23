@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="card">
+    <div class="card-header">Route Loading vs Capacity</div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>Vehicle</th>
+                    <th>Assigned</th>
+                    <th>Capacity</th>
+                    <th style="width: 30%;">Loading</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in route_rows %}
+                <tr>
+                    <td class="fw-semibold">
+                        <a href="{% url 'transport:route_detail' row.route.pk %}" class="text-decoration-none">{{ row.route.name }}</a>
+                    </td>
+                    <td>{{ row.route.vehicle|default:"—" }}</td>
+                    <td>
+                        {{ row.total }} <span class="text-muted small">({{ row.students }} student{{ row.students|pluralize }}, {{ row.staff }} staff)</span>
+                        {% if row.over %}<span class="badge text-bg-danger ms-1">Over capacity</span>{% endif %}
+                    </td>
+                    <td>{{ row.capacity|default:"—" }}</td>
+                    <td>
+                        {% if row.capacity %}
+                            <div class="progress" style="height: 12px;">
+                                <div class="progress-bar {% if row.over %}bg-danger{% elif row.pct >= 90 %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ row.pct }}%;"></div>
+                            </div>
+                        {% else %}
+                            <span class="text-muted small">No vehicle</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="bi bi-signpost-split"></i>
+                        No routes yet — create routes to see loading.
+                    </div>
+                </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Driver Licence Expiry</div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Driver</th>
+                    <th>Licence No.</th>
+                    <th>Expiry</th>
+                    <th>Days Left</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in driver_docs %}
+                <tr>
+                    <td class="fw-semibold">{{ row.driver.name }}</td>
+                    <td>{{ row.driver.license_number|default:"—" }}</td>
+                    <td>{{ row.driver.license_expiry|date:"d M Y" }}</td>
+                    <td>{{ row.days_left }}</td>
+                    <td>
+                        <span class="badge text-bg-{% if row.status == 'expired' %}danger{% elif row.status == 'expiring' %}warning{% else %}success{% endif %}">
+                            {% if row.status == 'expired' %}Expired{% elif row.status == 'expiring' %}Expiring soon{% else %}Valid{% endif %}
+                        </span>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5">
+                    <div class="empty-state">
+                        <i class="bi bi-card-text"></i>
+                        No driver licences on record yet.
+                    </div>
+                </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

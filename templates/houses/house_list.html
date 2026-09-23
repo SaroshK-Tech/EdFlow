@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add House" primary_url="houses:add" %}
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'houses:leaderboard' %}" class="small text-decoration-none"><i class="bi bi-trophy me-1"></i>Leaderboard →</a>
+    <a href="{% url 'houses:activities' %}" class="small text-decoration-none ms-3"><i class="bi bi-calendar-event me-1"></i>Activities →</a>
+    <a href="{% url 'houses:points' %}" class="small text-decoration-none ms-3"><i class="bi bi-star me-1"></i>Points →</a>
+</div>
+
+<div class="row g-3">
+    {% for house in houses %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="d-inline-flex align-items-center gap-2">
+                            <span class="badge rounded-circle" style="width:22px;height:22px;background:{{ house.color|default:'#4f46e5' }};"></span>
+                            <h5 class="mb-0 fw-semibold">{{ house.name }}</h5>
+                        </span>
+                        <span><a href="{% url 'houses:edit' house.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a></span>
+                    </div>
+                    {% if house.motto %}<p class="text-muted small mb-2">“{{ house.motto }}”</p>{% endif %}
+                    <span class="badge text-bg-warning"><i class="bi bi-star-fill me-1"></i>{{ house.points_total }} points</span>
+                    <hr class="my-2">
+                    <div class="row small g-2">
+                        <div class="col-6"><span class="text-muted">Captain</span><br><strong>{{ house.captain|default:"—" }}</strong></div>
+                        <div class="col-6"><span class="text-muted">Vice captain</span><br><strong>{{ house.vice_captain|default:"—" }}</strong></div>
+                        <div class="col-6"><span class="text-muted">Coordinator</span><br><strong>{{ house.staff_coordinator|default:"—" }}</strong></div>
+                        <div class="col-6"><span class="text-muted">Members</span><br><strong>{{ house.students.count }}</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="empty-state">
+                        <i class="bi bi-shield-check"></i>
+                        {% if q %}No houses match "{{ q }}".{% else %}No houses yet — create your school houses.{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

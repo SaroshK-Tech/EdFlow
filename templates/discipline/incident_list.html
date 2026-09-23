@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Report Incident" primary_url="discipline:add" %}
+
+<div class="row g-4 mb-3">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        {% include "partials/search_box.html" with filter_params=filter_params %}
+                        <form method="get" class="d-flex align-items-center gap-1">
+                            {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">All statuses</option>
+                                {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="klass" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="">All classes</option>
+                                {% for klass in classes %}
+                                    <option value="{{ klass.pk }}" {% if current_klass == klass.pk|stringformat:"s" %}selected{% endif %}>{{ klass.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    <span class="small text-muted">{{ incidents|length }} incident(s) shown</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Incident</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Class</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for incident in incidents %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'discipline:student' incident.student.pk %}" class="fw-semibold text-decoration-none">{{ incident.student.full_name }}</a>
+                                    <div class="small text-muted">{{ incident.student.admission_number }}</div>
+                                </td>
+                                <td><a href="{% url 'discipline:detail' incident.pk %}" class="text-decoration-none">{{ incident.title }}</a></td>
+                                <td>{{ incident.date }}</td>
+                                <td><span class="badge text-bg-light">{{ incident.get_type_display }}</span></td>
+                                <td><span class="badge text-bg-{% if incident.severity == 'severe' %}danger{% elif incident.severity == 'moderate' %}warning{% else %}info{% endif %}">{{ incident.get_severity_display }}</span></td>
+                                <td><span class="badge text-bg-{% if incident.status == 'open' %}danger{% elif incident.status == 'under_review' %}warning{% elif incident.status == 'resolved' %}success{% else %}secondary{% endif %}">{{ incident.get_status_display }}</span></td>
+                                <td>{{ incident.klass|default:"—" }}</td>
+                                <td class="text-end text-nowrap">
+                                    <a href="{% url 'discipline:detail' incident.pk %}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{% url 'discipline:edit' incident.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <a href="{% url 'discipline:delete' incident.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="8">
+                                <div class="empty-state">
+                                    <i class="bi bi-alert-triangle"></i>
+                                    {% if q or current_status or current_klass %}No incidents match the current filter.{% else %}No incidents reported yet — keep up the good behaviour.{% endif %}
+                                </div>
+                            </td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/pagination.html" %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <span class="fw-semibold">Incidents by Severity</span>
+            </div>
+            <div class="card-body text-center">
+                <canvas id="severityChart" height="220"></canvas>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6 class="fw-semibold">Quick Links</h6>
+                <div class="d-grid gap-2">
+                    <a class="btn btn-outline-secondary btn-sm text-start" href="{% url 'discipline:warnings' %}"><i class="bi bi-exclamation-triangle me-1"></i>Warnings</a>
+                    <a class="btn btn-outline-secondary btn-sm text-start" href="{% url 'discipline:actions' %}"><i class="bi bi-clipboard-check me-1"></i>Disciplinary Actions</a>
+                    <a class="btn btn-outline-secondary btn-sm text-start" href="{% url 'discipline:achievements' %}"><i class="bi bi-trophy me-1"></i>Achievements</a>
+                    <a class="btn btn-outline-danger btn-sm text-start" href="{% url 'discipline:announcement' %}"><i class="bi bi-megaphone me-1"></i>Emergency Announcement</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+{{ severity_labels|json_script:"severity-labels" }}
+{{ severity_values|json_script:"severity-values" }}
+<script>
+(function () {
+    var labels = JSON.parse(document.getElementById("severity-labels").textContent);
+    var values = JSON.parse(document.getElementById("severity-values").textContent);
+    var canvas = document.getElementById("severityChart");
+    if (!canvas || window.Chart === undefined) return;
+    new Chart(canvas, {
+        type: "doughnut",
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ["#20c997", "#f59e0b", "#ef4444"]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: "bottom" }
+            }
+        }
+    });
+})();
+</script>
+{% endblock %}

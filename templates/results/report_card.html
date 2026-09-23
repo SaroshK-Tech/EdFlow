@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header no-print">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ exam.name }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'results:report_card_pdf' exam.pk student.pk %}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+    </div>
+</div>
+
+<div class="print-sheet">
+    <div class="print-sheet-head">
+        <div class="print-sheet-head-left">
+            {% if school.logo %}<img src="{{ school.logo.url }}" alt="" class="print-logo">{% endif %}
+            <div>
+                <div class="print-sheet-school">{{ school.name|default:"School" }}</div>
+                <div class="print-sheet-sub">{{ school.address|default:"" }}</div>
+            </div>
+        </div>
+        <div class="print-sheet-head-right">
+            <div class="print-sheet-title">REPORT CARD</div>
+            <div class="print-sheet-sub">{{ exam.name }}</div>
+            <div class="print-sheet-sub">{{ exam.get_status_display }}</div>
+        </div>
+    </div>
+
+    <div class="print-student">
+        <div class="print-student-block"><span>Name</span><b>{{ student.full_name }}</b></div>
+        <div class="print-student-block"><span>Admission No</span><b>{{ student.admission_number }}</b></div>
+        <div class="print-student-block"><span>Class / Section</span><b>{{ student.klass|default:"—" }}{% if student.section %} / {{ student.section.name }}{% endif %}</b></div>
+    </div>
+
+    <table class="print-table">
+        <thead>
+            <tr>
+                <th>Subject</th>
+                <th class="text-center">Max</th>
+                <th class="text-center">Obtained</th>
+                <th class="text-center">Grade</th>
+                <th class="text-center">Pass</th>
+                <th>Teacher Remark</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            <tr>
+                <td>{{ row.exam_subject.subject.name }}</td>
+                <td class="text-center">{{ row.exam_subject.max_marks }}</td>
+                <td class="text-center">
+                    {% if row.mark %}
+                        {% if row.mark.is_absent %}A{% else %}{{ row.mark.marks_obtained }}{% endif %}
+                    {% else %}—{% endif %}
+                </td>
+                <td class="text-center">{% if row.mark %}{{ row.mark.grade|default:"—" }}{% else %}—{% endif %}</td>
+                <td class="text-center">{% if row.mark %}{% if row.mark.is_pass %}Pass{% else %}Fail{% endif %}{% else %}—{% endif %}</td>
+                <td>{{ row.mark.teacher_remark|default:"" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="text-center">No subjects assigned.</td></tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="fw-bold">Total</td>
+                <td class="text-center fw-bold">{{ total_max }}</td>
+                <td class="text-center fw-bold">{{ total_obtained }}</td>
+                <td class="text-center fw-bold">{% if result %}{{ result.grade }}{% endif %}</td>
+                <td class="text-center">
+                    {% if result %}
+                        <b class="{% if result.is_pass %}text-success{% else %}text-danger{% endif %}">{% if result.is_pass %}Pass{% else %}Fail{% endif %}</b>
+                    {% endif %}
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-end">Percentage: <b>{{ percentage }}%</b></td>
+                <td colspan="2" class="text-center">GPA: <b>{{ result.gpa|default:"—" }}</b></td>
+                <td>Position: <b>{{ result.class_position|default:"—" }}</b></td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-end">Cumulative %: <b>{{ result.weighted_percentage|default:"—" }}{% if result.weighted_percentage %}%{% endif %}</b></td>
+                <td colspan="3" class="text-center text-muted">Weighted by exam-type weightage</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if result and result.remarks %}
+        <div class="print-note">Remarks: {{ result.remarks }}</div>
+    {% endif %}
+
+    <div class="print-signs">
+        <div class="print-sign"><span></span>Parent / Guardian</div>
+        <div class="print-sign"><span></span>Class Teacher</div>
+        <div class="print-sign"><span></span>Principal</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.print-sheet { max-width: 860px; margin: 0 auto; padding: 1.75rem; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; }
+.print-sheet-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #059669; padding-bottom: .8rem; margin-bottom: 1.1rem; }
+.print-sheet-head-left { display: flex; gap: .8rem; align-items: center; }
+.print-logo { width: 52px; height: 52px; object-fit: contain; }
+.print-sheet-school { font-size: 1.2rem; font-weight: 700; color: #065f46; }
+.print-sheet-sub { font-size: .82rem; color: #6b7280; }
+.print-sheet-title { font-size: 1rem; font-weight: 700; letter-spacing: .08em; color: #047857; }
+.print-student { display: flex; flex-wrap: wrap; gap: 1rem 2.5rem; margin-bottom: 1rem; padding: .75rem 0; border-bottom: 1px dashed #d1d5db; }
+.print-student-block span { display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: #9ca3af; }
+.print-student-block b { font-size: .92rem; }
+.print-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.print-table th, .print-table td { border: 1px solid #e5e7eb; padding: .45rem .6rem; }
+.print-table thead th { background: #ecfdf5; }
+.print-note { margin-top: .9rem; font-size: .82rem; color: #4b5563; }
+.print-signs { display: flex; justify-content: space-between; margin-top: 2.5rem; font-size: .78rem; color: #4b5563; }
+.print-sign { text-align: center; }
+.print-sign span { display: block; width: 170px; border-top: 1px solid #9ca3af; margin-bottom: .3rem; }
+@media print {
+    .app-sidebar, .app-sidebar-backdrop, .app-topbar, .app-footer, .no-print, .toast-container { display: none !important; }
+    .app-content { padding: 0 !important; }
+    .print-sheet { box-shadow: none !important; border: none !important; }
+    @page { size: A4; margin: 12mm; }
+}
+</style>
+{% endblock %}

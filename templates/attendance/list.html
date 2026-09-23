@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Mark Attendance" primary_url="attendance:mark" %}
+
+<form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small" for="date-filter">Date</label>
+            <input type="date" class="form-control" name="date" id="date-filter" value="{{ date }}">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary" type="submit">Filter</button>
+        </div>
+    </div>
+</form>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-person-check"></i></span>
+            <div><div class="stat-value">{{ records|length }}</div><div class="stat-label">Marked Today</div></div>
+        </div>
+    </div>
+    {% for row in breakdown %}
+        <div class="col-6 col-xl-4">
+            <div class="card stat-card">
+                <span class="stat-icon {% if row.status == 'absent' %}bg-danger-soft{% elif row.status == 'late' %}bg-warning-soft{% else %}bg-info-soft{% endif %}"><i class="bi bi-check-circle"></i></span>
+                <div><div class="stat-value">{{ row.count }}</div><div class="stat-label">{{ row.status|title }}</div></div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Roll</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for rec in records %}
+                    <tr>
+                        <td>{{ rec.student.roll_number|default:"—" }}</td>
+                        <td>
+                            <a href="{% url 'students:detail' rec.student.pk %}" class="fw-semibold text-decoration-none">{{ rec.student.full_name }}</a>
+                        </td>
+                        <td>{{ rec.student.klass|default:"—" }}{% if rec.student.section %} / {{ rec.student.section.name }}{% endif %}</td>
+                        <td>
+                            <span class="badge text-bg-{% if rec.status == 'present' %}success{% elif rec.status == 'absent' %}danger{% elif rec.status == 'excused' %}secondary{% else %}warning{% endif %}">{{ rec.get_status_display }}</span>
+                        </td>
+                        <td class="small text-muted">{{ rec.remarks|default:"—" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard-data"></i>
+                            No attendance records for {{ date }} — <a href="{% url 'attendance:mark' %}" class="text-decoration-none">mark now</a>.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

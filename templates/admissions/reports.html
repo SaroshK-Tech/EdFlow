@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="New Inquiry" primary_url="admissions:add" %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-funnel"></i></span>
+            <div>
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-label">Total Inquiries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-person-check"></i></span>
+            <div>
+                <div class="stat-value">{{ enrolled_count }}</div>
+                <div class="stat-label">Enrolled</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-graph-up-arrow"></i></span>
+            <div>
+                <div class="stat-value">{{ conversion }}%</div>
+                <div class="stat-label">Conversion rate</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-paperclip"></i></span>
+            <div>
+                <div class="stat-value">{{ documents_count }}</div>
+                <div class="stat-label">Documents collected</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Inquiries by Status</div>
+            <div class="card-body">
+                <canvas id="statusChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">Inquiries by Class</div>
+            <div class="card-body">
+                <canvas id="classChart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Class-wise Demand</div>
+    <div class="card-body table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Class</th><th class="text-end">Inquiries</th><th class="text-end">Enrolled</th><th class="text-end">Conversion</th></tr></thead>
+            <tbody>
+            {% for row in by_class %}
+                <tr>
+                    <td class="fw-semibold">{{ row.klass__name }}</td>
+                    <td class="text-end">{{ row.total }}</td>
+                    <td class="text-end">{{ row.enrolled }}</td>
+                    <td class="text-end">{% widthratio row.enrolled row.total 100 %}%</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="4"><div class="empty-state"><i class="bi bi-inbox"></i>No class data yet.</div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+    var statusData = {
+        labels: [],
+        data: []
+    };
+    {% for row in by_status %}
+        statusData.labels.push("{{ row.status }}");
+        statusData.data.push({{ row.total }});
+    {% endfor %}
+    var colors = ["#0d6efd", "#6c757d", "#ffc107", "#0dcaf0", "#198754", "#dc3545", "#6610f2"];
+    new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+            labels: statusData.labels,
+            datasets: [{
+                data: statusData.data,
+                backgroundColor: colors
+            }]
+        },
+        options: { plugins: { legend: { position: "bottom" } } }
+    });
+
+    var classData = { labels: [], included: [], enrolled: [] };
+    {% for row in by_class %}
+        classData.labels.push("{{ row.klass__name }}");
+        classData.included.push({{ row.total }});
+        classData.enrolled.push({{ row.enrolled }});
+    {% endfor %}
+    new Chart(document.getElementById("classChart"), {
+        type: "bar",
+        data: {
+            labels: classData.labels,
+            datasets: [
+                { label: "Inquiries", data: classData.included, backgroundColor: "#0dcaf0" },
+                { label: "Enrolled", data: classData.enrolled, backgroundColor: "#198754" }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="New Inquiry" primary_url="admissions:add" %}
+
+<div class="d-flex justify-content-end mb-3">
+    <a href="{% url 'admissions:reports' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-bar-chart me-1"></i>Admission Reports</a>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-funnel"></i></span>
+            <div>
+                <div class="stat-value">{{ total }}</div>
+                <div class="stat-label">Total Inquiries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-hourglass-split"></i></span>
+            <div>
+                <div class="stat-value">{{ pending }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-person-check"></i></span>
+            <div>
+                <div class="stat-value">{{ enrolled }}</div>
+                <div class="stat-label">Enrolled</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+            {% include "partials/search_box.html" %}
+            <form method="get" class="d-flex gap-2 align-items-center">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <select name="status" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if selected_status %}<a href="{% url 'admissions:list' %}{% if q %}?q={{ q }}{% endif %}" class="btn btn-sm btn-light">Clear</a>{% endif %}
+            </form>
+            <span class="small text-muted">{{ inquiries|length }} displayed</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Inquiry</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Guardian</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for inquiry in inquiries %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ inquiry.inquiry_number }}</span></td>
+                        <td class="fw-semibold">
+                            <a href="{% url 'admissions:detail' inquiry.pk %}">{{ inquiry.student_first_name }} {{ inquiry.student_last_name }}</a>
+                        </td>
+                        <td>{{ inquiry.klass|default:"—" }}</td>
+                        <td>{{ inquiry.guardian_name|default:"—" }}</td>
+                        <td>{{ inquiry.guardian_phone|default:"—" }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if inquiry.status == 'enrolled' %}success{% elif inquiry.status == 'rejected' %}danger{% elif inquiry.status == 'pending' %}warning{% elif inquiry.status == 'offered' %}info{% else %}secondary{% endif %}">{{ inquiry.get_status_display }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'admissions:detail' inquiry.pk %}" class="btn btn-sm btn-outline-secondary" title="View workflow"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'admissions:edit' inquiry.pk %}" class="btn btn-sm btn-outline-primary" title="Update"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-plus"></i>
+                            {% if q %}No inquiries match "{{ q }}".{% else %}No admission inquiries yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

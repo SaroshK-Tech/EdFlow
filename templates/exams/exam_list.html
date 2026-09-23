@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'exams:gradeboundaries' %}"><i class="bi bi-mortarboard me-1"></i>Grade Boundaries</a>
+        <a class="btn btn-outline-primary" href="{% url 'exams:examtypes' %}"><i class="bi bi-diagram-3 me-1"></i>Exam Types</a>
+        <a class="btn btn-primary" href="{% url 'exams:add' %}"><i class="bi bi-plus-lg me-1"></i>Add Exam</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            {% include "partials/search_box.html" %}
+            <form method="get" class="d-flex align-items-center gap-1">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Exam</th>
+                        <th>Type</th>
+                        <th>Academic Year</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for exam in exams %}
+                    <tr>
+                        <td class="fw-semibold"><a href="{% url 'exams:detail' exam.pk %}" class="text-decoration-none">{{ exam.name }}</a></td>
+                        <td>{{ exam.exam_type.name }}</td>
+                        <td>{{ exam.academic_year|default:"—" }}</td>
+                        <td>{{ exam.start_date|default:"—" }}{% if exam.end_date %} → {{ exam.end_date }}{% endif %}</td>
+                        <td>
+                            <span class="badge text-bg-{% if exam.status == 'published' %}success{% elif exam.status == 'approved' %}info{% else %}warning{% endif %}">{{ exam.get_status_display }}</span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'results:detail' exam.pk %}" class="btn btn-sm btn-outline-primary" title="Results"><i class="bi bi-clipboard-data"></i></a>
+                            <a href="{% url 'exams:edit' exam.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'exams:delete' exam.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-award"></i>
+                            {% if q or current_status %}No exams match the current filter.{% else %}No exams yet — create one to start marks entry.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header no-print">
+    <div>
+        <h1 class="page-title">Print Vouchers</h1>
+        <p class="page-subtitle mb-0">{{ vouchers|length }} voucher(s) ready to print</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'fees:vouchers' %}"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print All</button>
+    </div>
+</div>
+
+{% for voucher in vouchers %}
+    {% include "fees/_voucher_body.html" %}
+{% empty %}
+    <div class="empty-state no-print"><i class="bi bi-receipt"></i>No vouchers to print.</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.voucher-sheet { page-break-after: always; }
+.voucher-sheet:last-child { page-break-after: auto; }
+@media print {
+    .app-sidebar, .app-sidebar-backdrop, .app-topbar, .app-footer,
+    .no-print, .toast-container { display: none !important; }
+    .app-content { padding: 0 !important; }
+    .app-main { margin: 0 !important; }
+    body, .app-wrapper { background: #fff !important; }
+    .voucher-sheet { margin: 0 !important; box-shadow: none !important; }
+    @page { size: A4; margin: 12mm; }
+}
+</style>
+{% endblock %}

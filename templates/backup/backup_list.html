@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-primary-soft mb-2"><i class="bi bi-database-check"></i></span>
+            <div class="stat-val">{{ total_backups }}</div>
+            <div class="small text-muted">Total backups</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-success-soft mb-2"><i class="bi bi-shield-check"></i></span>
+            <div class="stat-val">{{ verified_backups }}</div>
+            <div class="small text-muted">Verified</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-info-soft mb-2"><i class="bi bi-clock-history"></i></span>
+            <div class="stat-val small py-2">{{ last_backup.archive_name|default:"No backups yet" }}</div>
+            <div class="small text-muted">Last backup · {{ last_backup.started_at|date:"d M Y H:i"|default:"—" }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-warning-soft mb-2"><i class="bi bi-hdd"></i></span>
+            <div class="stat-val">{{ last_backup.human_size|default:"—" }}</div>
+            <div class="small text-muted">Last backup size</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="mb-0 fw-semibold"><i class="bi bi-hdd-stack me-1"></i>Backup destinations</h6>
+    <div class="d-flex gap-2">
+        <a href="{% url 'backup:history' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-clock-history me-1"></i>History</a>
+        <a href="{% url 'backup:profile_add' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add destination</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Destination</th><th>Folder</th><th class="text-center">Keep</th><th class="text-center">Backups</th><th>Status</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+            {% for profile in profiles %}
+                <tr>
+                    <td class="fw-semibold">{{ profile.name }}</td>
+                    <td><code class="text-muted small">{{ profile.destination_path }}</code></td>
+                    <td class="text-center">{{ profile.keep_count }}</td>
+                    <td class="text-center">{{ profile.job_count }}</td>
+                    <td>
+                        {% if profile.is_active %}
+                            <span class="badge text-bg-success">Active</span>
+                        {% else %}
+                            <span class="badge text-bg-secondary">Paused</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end text-nowrap">
+                        <form method="post" action="{% url 'backup:run' profile.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-sm btn-primary"><i class="bi bi-play-fill me-1"></i>Back up now</button>
+                        </form>
+                        <a href="{% url 'backup:profile_edit' profile.pk %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'backup:profile_delete' profile.pk %}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6"><div class="empty-state"><i class="bi bi-hdd"></i>No backup destinations yet. Add one to start protecting your data.</div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><span class="fw-semibold"><i class="bi bi-clock-history me-1"></i>Recent backups</span></div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead><tr><th>Archive</th><th>Destination</th><th>Size</th><th>Checksum</th><th>Status</th><th class="text-end">Started</th></tr></thead>
+            <tbody>
+            {% for job in recent_jobs %}
+                <tr>
+                    <td class="small">{{ job.archive_name|default:"—" }}</td>
+                    <td>{% if job.profile %}{{ job.profile.name }}{% else %}Custom{% endif %}</td>
+                    <td>{{ job.human_size }}</td>
+                    <td><code class="small">{{ job.checksum|slice:":12"|default:"—" }}…</code></td>
+                    <td>
+                        {% if job.verified %}
+                            <span class="badge text-bg-success">Verified</span>
+                        {% elif job.status == 'success' %}
+                            <span class="badge text-bg-info">Success</span>
+                        {% elif job.status == 'failed' %}
+                            <span class="badge text-bg-danger">Failed</span>
+                        {% else %}
+                            <span class="badge text-bg-warning text-dark">{{ job.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end small">{{ job.started_at|date:"d M Y H:i" }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6"><div class="empty-state">No backups yet.</div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Book" primary_url="library:book_add" %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-book"></i></span>
+            <div><div class="stat-value">{{ total_books }}</div><div class="stat-label">Book Titles</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-copy"></i></span>
+            <div><div class="stat-value">{{ total_copies }}</div><div class="stat-label">Total Copies</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-4">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-check2-circle"></i></span>
+            <div><div class="stat-value">{{ available_copies }}</div><div class="stat-label">Available</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            {% include "partials/search_box.html" %}
+            <form method="get" class="d-flex align-items-center gap-2">
+                {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All categories</option>
+                    {% for cat in category_choices %}
+                        <option value="{{ cat.pk }}" {% if current_category == cat.pk|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All copy statuses</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>ISBN</th>
+                        <th>Copies</th>
+                        <th>Shelf</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for book in books %}
+                    <tr>
+                        <td class="fw-semibold"><a href="{% url 'library:book_detail' book.pk %}" class="text-decoration-none">{{ book.title }}</a></td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.category|default:"—" }}</td>
+                        <td><span class="badge text-bg-light">{{ book.isbn|default:"—" }}</span></td>
+                        <td>
+                            {% if book.available_copies > 0 %}
+                                <span class="badge text-bg-success">{{ book.available_copies }}</span>
+                            {% else %}
+                                <span class="badge text-bg-secondary">0</span>
+                            {% endif %}
+                            <span class="text-muted">/ {{ book.total_copies }}</span>
+                        </td>
+                        <td>{{ book.shelf|default:"—" }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'library:book_detail' book.pk %}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'library:book_edit' book.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'library:book_delete' book.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-book"></i>
+                            {% if q or current_category or current_status %}No books match the current filter.{% else %}No books in the library yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

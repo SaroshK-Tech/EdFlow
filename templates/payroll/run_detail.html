@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" href="{% url 'payroll:list' %}"><i class="bi bi-arrow-left me-1"></i>All Runs</a>
+        {% if run.status != 'paid' %}
+            <form method="post" action="{% url 'payroll:process' run.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-outline-primary" type="submit"><i class="bi bi-arrow-repeat me-1"></i>Re-process</button>
+            </form>
+        {% endif %}
+        {% if run.status == 'processed' %}
+            <form method="post" action="{% url 'payroll:pay' run.pk %}">
+                {% csrf_token %}
+                <button class="btn btn-success" type="submit"><i class="bi bi-cash-stack me-1"></i>Mark Paid</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-people"></i></span>
+            <div><div class="stat-value">{{ totals.employees|default:0 }}</div><div class="stat-label">Employees</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-arrow-up-short"></i></span>
+            <div><div class="stat-value">{{ totals.gross|floatformat:2|default:"0.00" }}</div><div class="stat-label">Gross</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-plus-circle"></i></span>
+            <div><div class="stat-value">{{ totals.allowances|floatformat:2|default:"0.00" }}</div><div class="stat-label">Allowances</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-danger-soft"><i class="bi bi-minus-circle"></i></span>
+            <div><div class="stat-value">{{ totals.deductions|floatformat:2|default:"0.00" }}</div><div class="stat-label">Deductions</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-wallet2"></i></span>
+            <div><div class="stat-value">{{ totals.net|floatformat:2|default:"0.00" }}</div><div class="stat-label">Net Pay</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-secondary-soft"><i class="bi bi-tag"></i></span>
+            <div>
+                <div class="stat-value">
+                    <span class="badge text-bg-{% if run.status == 'paid' %}success{% elif run.status == 'processed' %}info{% else %}warning{% endif %}">{{ run.get_status_display }}</span>
+                </div>
+                <div class="stat-label">{% if run.paid_on %}Paid {{ run.paid_on }}{% else %}{{ run.created_by|default:"system" }}{% endif %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Pay Slips — {{ slips|length }}</span>
+        <span class="small text-muted">{{ page_subtitle }}</span>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Employee</th>
+                        <th>Department</th>
+                        <th>Basic</th>
+                        <th>Allowances</th>
+                        <th>Deductions</th>
+                        <th>Net</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for slip in slips %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ slip.staff.employee_code }}</span></td>
+                        <td class="fw-semibold">{{ slip.staff.full_name }}</td>
+                        <td>{{ slip.staff.department|default:"—" }}</td>
+                        <td>{{ slip.basic }}</td>
+                        <td class="text-success">+ {{ slip.allowances_total }}</td>
+                        <td class="text-danger">− {{ slip.deductions_total }}</td>
+                        <td class="fw-semibold">{{ slip.net }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'payroll:slip' slip.pk %}" class="btn btn-sm btn-outline-primary" title="View slip"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'payroll:slip_pdf' slip.pk %}" class="btn btn-sm btn-outline-secondary" title="PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-x"></i>
+                            No pay slips yet — press "Re-process" to compute them.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

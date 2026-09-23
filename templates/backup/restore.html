@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Backup details</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><th class="text-muted">Archive</th><td><code>{{ job.archive_name }}</code></td></tr>
+                        <tr><th class="text-muted">Destination</th><td>{% if job.profile %}{{ job.profile.destination_path }}{% else %}—{% endif %}</td></tr>
+                        <tr><th class="text-muted">Size</th><td>{{ job.human_size }}</td></tr>
+                        <tr><th class="text-muted">SHA-256</th><td><code>{{ job.checksum }}</code></td></tr>
+                        <tr><th class="text-muted">Status</th><td>{{ job.get_status_display }}{% if job.verified %} · <span class="badge text-bg-success">verified {{ job.verified_at|date:"d M Y H:i" }}</span>{% endif %}</td></tr>
+                        <tr><th class="text-muted">Created</th><td>{{ job.started_at|date:"d M Y H:i" }}</td></tr>
+                        <tr><th class="text-muted">Recorded rows</th><td>{{ job.entries }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card text-bg-danger">
+            <div class="card-header bg-danger border-0"><i class="bi bi-exclamation-octagon me-1"></i>Restore</div>
+            <div class="card-body text-bg-light">
+                <div class="alert alert-warning small mb-3">
+                    Restoring replaces the current school database and media files with
+                    the contents of this backup. A <strong>pre-restore safety backup</strong> is created
+                    automatically first. Only verified backups can be restored.
+                </div>
+                {% if not job.verified %}
+                    <div class="alert alert-danger small d-flex gap-2 align-items-start">
+                        <i class="bi bi-shield-exclamation mt-1"></i>
+                        <div>This backup is <strong>not verified</strong>. Run verification from the history page
+                        before restoring.</div>
+                    </div>
+                {% endif %}
+                <form method="post" onsubmit="return confirm('This cannot be undone — restore this backup now?');">
+                    {% csrf_token %}
+                    <label class="form-label small text-muted">Type the archive name to confirm</label>
+                    <input type="text" name="confirm" class="form-control form-control-sm mb-2" placeholder="{{ job.archive_name }}" required autocomplete="off">
+                    <button class="btn btn-danger btn-sm" {% if not job.verified %}disabled{% endif %} type="submit"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore backup</button>
+                    <a href="{% url 'backup:history' %}" class="btn btn-link text-muted btn-sm">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Syllabus" primary_url="academics:syllabus_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ syllabi|length }} syllabus unit(s)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Term</th>
+                        <th>Units</th>
+                        <th>Dates</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in syllabi %}
+                    <tr>
+                        <td class="fw-semibold">{{ item.title }}</td>
+                        <td>{{ item.klass }}</td>
+                        <td>{{ item.subject }}</td>
+                        <td>{{ item.term|default:"—" }}</td>
+                        <td><span class="badge text-bg-light">{{ item.units|length }} topic(s)</span></td>
+                        <td class="small">{{ item.start_date|default:"—" }} → {{ item.end_date|default:"—" }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'academics:syllabus_edit' item.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'academics:syllabus_delete' item.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-journal-text"></i>
+                            {% if q %}No syllabus matches "{{ q }}".{% else %}No syllabus yet — add your first curriculum unit.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

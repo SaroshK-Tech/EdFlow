@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-primary-soft mb-2"><i class="bi bi-boxes"></i></span>
+            <div class="stat-val">{{ item_count }}</div>
+            <div class="small text-muted">Stock items</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-success-soft mb-2"><i class="bi bi-cash-stack"></i></span>
+            <div class="stat-val">{{ total_stock_value }}</div>
+            <div class="small text-muted">Stock value (at last purchase cost)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-danger-soft mb-2"><i class="bi bi-exclamation-triangle"></i></span>
+            <div class="stat-val text-danger">{{ low_count }}</div>
+            <div class="small text-muted">Low stock items</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-info-soft mb-2"><i class="bi bi-briefcase"></i></span>
+            <div class="stat-val">{{ total_assets }}</div>
+            <div class="small text-muted">Assets worth {{ assets_value }}</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Low stock items</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Item</th><th>Category</th><th class="text-center">In stock</th><th class="text-center">Reorder level</th></tr></thead>
+                    <tbody>
+                    {% for item in low_items %}
+                        <tr>
+                            <td class="fw-semibold"><a href="{% url 'inventory:item_detail' item.pk %}" class="text-decoration-none">{{ item.name }}</a></td>
+                            <td>{{ item.category|default:"—" }}</td>
+                            <td class="text-center fw-semibold text-danger">{{ item.avail }}</td>
+                            <td class="text-center">{{ item.min_stock }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted small py-3">No low stock items — everything is above reorder level.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Purchases by year</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Year</th><th>Total value purchased</th></tr></thead>
+                    <tbody>
+                    {% for row in purchase_total_year %}
+                        <tr><td>{{ row.purchase_date__year }}</td><td class="fw-semibold">{{ row.total }}</td></tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted small py-3">No purchases recorded.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Top stocked items</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Item</th><th class="text-center">In stock</th></tr></thead>
+                    <tbody>
+                    {% for item in top_items %}
+                        <tr>
+                            <td class="fw-semibold">{{ item.name }}</td>
+                            <td class="text-center">{{ item.avail }} {{ item.unit }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted small py-3">No items.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Assets by status</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Status</th><th class="text-center">Count</th></tr></thead>
+                    <tbody>
+                    {% for row in assets_by_status %}
+                        <tr>
+                            <td>{{ row.status|title }}</td>
+                            <td class="text-center">{{ row.n }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted small py-3">No assets.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

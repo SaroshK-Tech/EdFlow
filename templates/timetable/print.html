@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header no-print">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'timetable:detail' timetable.pk %}"><i class="bi bi-arrow-left me-1"></i>Back</a>
+        <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+    </div>
+</div>
+
+{% for grid in class_grids %}
+    <div class="print-sheet mb-5">
+        <div class="print-sheet-head">
+            <div class="print-sheet-school">{{ school.name|default:"School" }}</div>
+            <div class="print-sheet-sub">
+                {{ grid.klass.name }} Timetable — {{ academic_year.name }}
+                · {{ page_title }}
+            </div>
+        </div>
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th>Periods</th>
+                    {% for day in day_defs %}<th>{{ day.label }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in grid.rows %}
+                <tr>
+                    <td class="fw-semibold text-nowrap">
+                        P{{ row.period.order }}
+                        <div class="fw-normal">{{ row.period.start_time|time:"H:i" }}-{{ row.period.end_time|time:"H:i" }}</div>
+                    </td>
+                    {% for cell in row.cells %}
+                        <td>
+                            {% if cell.entry %}
+                                <div class="fw-semibold">{{ cell.entry.subject.name }}</div>
+                                <div>{{ cell.entry.teacher.full_name }}</div>
+                                <div class="text-muted">{{ cell.entry.room.name }}{% if cell.entry.is_locked %} · locked{% endif %}</div>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% empty %}
+                <tr><td colspan="{{ day_defs|length|add:1 }}" class="text-center">No entries.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% empty %}
+    <div class="card no-print"><div class="card-body"><div class="empty-state">This timetable has no class grids to print.</div></div></div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.print-sheet { max-width: 900px; margin: 0 auto; }
+.print-sheet-head { margin-bottom: 1rem; border-bottom: 2px solid #0a58ca; padding-bottom: .6rem; }
+.print-sheet-school { font-size: 1.15rem; font-weight: 700; color: #084298; }
+.print-sheet-sub { font-size: .9rem; font-weight: 600; }
+.print-table { width: 100%; border-collapse: collapse; font-size: .78rem; }
+.print-table th, .print-table td { border: 1px solid #d1d5db; padding: .3rem .4rem; vertical-align: top; }
+.print-table thead th { background: #eef3ff; }
+@media print {
+    .app-sidebar, .app-sidebar-backdrop, .app-topbar, .app-footer, .no-print, .toast-container { display: none !important; }
+    .app-content { padding: 0 !important; }
+    .print-sheet { box-shadow: none !important; page-break-before: always; }
+    .print-sheet:first-of-type { page-break-before: auto; }
+    @page { size: A4 landscape; margin: 10mm; }
+}
+</style>
+{% endblock %}

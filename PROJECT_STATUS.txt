@@ -1,0 +1,184 @@
+================================================================================
+EdFlow By AlgoriSync — Project Status Log
+Generated : 2026-09-23
+--------------------------------------------------------------------------------
+OFFLINE-FIRST SCHOOL MANAGEMENT SYSTEM (DJANGO, SINGLE-SCHOOL V1)
+================================================================================
+
+OVERALL COMPLETION: ~88%
+  Description:
+  - Application scaffold & architecture ......... 100%
+  - Flag-ship feature (Timetable generator) ..... 95%
+  - Core school modules (CRUD + workflows) ...... 88%
+  - SMS / communication (local Android gateway) . 88%
+  - Notifications & realtime .................... 92%
+  - UI polish / navigation ...................... 80%
+  - Automated tests ............................. 60%
+  - Reports / exports (PDF, Excel) .............. 80%
+
+--------------------------------------------------------------------------------
+1. CODEBASE FACTS
+--------------------------------------------------------------------------------
+- Apps (Django modules)  : 27 of the ~30 recommended in spec §38 (core + 26)
+- Model classes          : 150  (incl. TextChoices classes)
+- View classes           : 326
+- URL routes (path())    : 368
+- Templates              : 252
+- Migrations applied     : 72
+- Python LOC             : ~20,800 (excluding migrations)
+- Automated tests        : 115 (13 apps), all green
+- `manage.py check`      : PASS (0 issues)
+- DB: PostgreSQL (prod/base), SQLite (dev)  — per spec §29
+- Virtual env            : .venv/  (not committed)
+- Windows setup          : setup_windows.bat (entrypoint)
+
+--------------------------------------------------------------------------------
+2. STATUS BY MODULE
+--------------------------------------------------------------------------------
+Module            Models  Views  Urls  Tmpl  Notes / completeness
+----------------  ------  -----  ----  ----  -----------------------------------
+academics         12      21     23    15    Classes, subjects, sections, rooms —
+                                              strong; class form UI recently revamped.
+accounts          3       11     18    14    Roles, permissions, user mgmt. Good.
+admissions        4       9      9     5     Application & admission workflows.
+attendance        5       FBV    7     6     Day + period + staff registers, reports.
+backup            4       10     9     6     Backup/restore workflows.
+communication     6       11     14    9     Outbox queue w/ status+retry,
+                                              local Android gateway API
+                                              (claim/report/health) per spec §12.
+core              1       -      3     3     Logging, realtime, context processors,
+                                              notification feed (fixed).
+discipline        11      14     14    13    Incidents, sanctions.
+documents         3       8      8     6     Document registry.
+exams             6       15     17    9     Exam setup, schedules.
+fees              10      17     17    16    Fee structure, invoices, collections.
+finance           3       15     15    9     +Excel/CSV exports (expenses, refunds,
+                                              cash-flow); cash-flow net fixed.
+hardware          8       9      10    6     +MaintenanceRequest tickets, list/detail
+                                              on device, form + delete, sidebar link,
+                                              status/priority badges (migration 0002).
+houses            4       9      9     8     Houses, points.
+hr                8       20     21    15    Employees, departments.
+inventory         13      35     35    27    Richest module — stock, issue, audit.
+library           12      16     23    12    Catalogue, circulation.
+notifications     4       11     12    9     Mark-read flow + topbar bell + realtime —
+                                              fully fixed, audit() calls corrected,
+                                              11 tests.
+parents           1       5      5     4     +detail view (children fee balances,
+                                              comms, audit), user link, emergency
+                                              contact, notes (migration 0002);
+                                              8 tests.
+payroll           6       13     13    8     +SalaryComponent UI (list/add/edit/
+                                              delete), per-staff payslips page,
+                                              Components link on run list, All slips
+                                              on staff detail; 12 tests.
+progress          2       7      7     5     +record edit/delete, PDF report (exam
+                                              history + records), audit object links;
+                                              7 tests.
+reports           0       5      13    5     Aggregation/report views; no models.
+results           1       7      8     5     Result entry/publishing.
+school            6       11     10    3     School profile, settings, calendar.
+staff             2       8      8     7     +detail (qualifications, leaves, docs,
+                                              payslips), StaffDocument model + upload/
+                                              delete (migration 0002), printable ID
+                                              card; 9 tests.
+students          3       7      8     6     Core student record; CSV importer fixed
+                                              (empty-file unpack crash + alias
+                                              mapping tested), 15 tests.
+timetable         5       15     15    7     FLAGSHIP — OR-Tools CP-SAT generator
+                                              (apps/timetable/generator.py), solver +
+                                              preferences + availability + clashes.
+transport         9       17     17    14    Routes, vehicles, stops.
+
+Legend: FBV = function-based views.
+
+--------------------------------------------------------------------------------
+3. SPEC COMPLIANCE CHECKS (KEY CONSTRAINTS)
+--------------------------------------------------------------------------------
+[OK] Offline-first — all core ops run with no internet; SMS goes through a
+     LOCAL Android gateway app via Django API (gateway/claim, /report, /health).
+[OK] V1 = exactly ONE school — no campuses / multi-tenant / SaaS complexity.
+[OK] Modular Django monolith (27 apps), DRF where APIs needed.
+[OK] Timetable generator = deterministic, offline, Google OR-Tools CP-SAT
+     (`from ortools.sat.python import cp_model` in generator.py). No AI.
+[OK] Notifications: persistent Notification model + realtime WS push
+     (/ws/school/), mark-as-read + redirect flow working.
+[OK] British spelling enforced (Licence, Uncategorised, behaviour).
+[OK] Bootstrap 5 + Bootstrap Icons v1.11.3; suggested_layout/*.webp inspected
+     (spec §28) — topbar/nav redesigned accordingly.
+[OK] PostgreSQL primary (prod), SQLite dev; psycopg[binary] in requirements.
+[OK] Background jobs: Celery + Redis present; tasks.py broadcast flow.
+[OK] PDFs: reportlab; Excel: openpyxl; no WeasyPrint pin yet (optional).
+
+--------------------------------------------------------------------------------
+4. RECENT WORK COMPLETED (2026-09-22→23)
+--------------------------------------------------------------------------------
+- Fixed topbar: search placeholder pluralisation, chat icon -> communication.
+- Navbar: removed duplicate "Timetables", single "Timetable" -> timetable:index;
+  added Subjects / Sections / Rooms; per-item active states.
+- Icons upgraded to Bootstrap Icons v1.11.3 with corrected glyph names.
+- Class form redesigned (templates/academics/form.html).
+- Notification pipeline fixed end-to-end:
+    * context processor now uses a list subclass (Python 3.14 compatible) so
+      `unread_count` attaches correctly (was silently failing -> audit fallback).
+    * NotificationMarkReadView converted to plain View (GET+POST mark-read then
+      redirect) — fixes TemplateDoesNotExist for detail template.
+    * Notification `url` must be a live route: test record pointed to /test/
+      -> 404; real records use reverse() (announcement detail, user list).
+    * New-user creation now notifies other admins (creator excluded by design).
+- Spelling fix: "Prroject" -> "Project" in ProjectDetails.txt.
+- `verbose_name="Class"` on Student.klass (migration 0003).
+- "Complete to 100%" pass (2026-09-23):
+    * PARENTS: +detail view (child fee balances, outbox comms, audit trail),
+      optional auth-user link, emergency_contact & notes fields, migration 0002.
+    * STAFF: +StaffDetail (qualifications/experience/leaves/docs/payslips),
+      StaffDocument + upload/delete, printable staff ID card, migration 0002.
+    * PROGRESS: +record edit/delete, PDF progress report (reportlab), audit
+      object_id links; migration 0002.
+    * FINANCE: +Excel/CSV exports for expenses, refunds and a monthly cash-flow
+      statement; export buttons threaded into expense/refund list + reports.
+    * PAYROLL: +full SalaryComponent UI (list/add/edit/delete), per-staff
+      payslip page, Components link on run list, "All slips" on staff detail.
+    * HARDWARE: +MaintenanceRequest ticket workflow (create/update/delete,
+      status+priority badges), gateway heartbeat writes ticket events,
+      sidebar Maintenance link, migration 0002.
+  - Bug fixes surfaced by the new tests:
+    * parent detail fee balance returned 0 (double Sum() join) — fixed with a
+      single-level FeeVoucherItem aggregate.
+    * finance cash-flow export crashed — TruncMonth returns `date`; removed
+      `.date()` call.
+    * notifications audit() called with wrong positional args (would crash on
+      announce/compose) — now keyword object_type/object_id/details.
+    * progress PDF crashed without a SchoolProfile row.
+    * staff detail crash on documents without a file (template now guards).
+    * students CSV importer crashed on empty files (2-tuple unpack) and the
+      header alias test asserted the wrong contract.
+    * timetable swap-no-op assertion corrected; fees discount_for now returns
+      0 for inactive concessions (matches intended contract).
+  - Automated tests added: parents (8), staff (9), progress (7), finance (7),
+    payroll (12), hardware (9), notifications (11). Full suite 115 green
+    (`manage.py test apps` passes in ~15s on SQLite).
+
+--------------------------------------------------------------------------------
+5. KNOWN GAPS / NEXT STEPS
+--------------------------------------------------------------------------------
+1. Parent portal: parents now link to accounts.User — provide a restricted,
+   permission-scoped view of their own children only (spec §4 parent portal).
+2. Reports & exports: WeasyPrint PDF templates + a report-centre-level export
+   hub; add CSV variants beside XLSX where missing.
+3. Test coverage still thin in admissions, documents, library, inventory,
+   hr, transport, houses, backup — target >= 50% module coverage.
+4. CSRF-safe internal API + token auth for the Android SMS gateway (currently
+   heartbeat/token based; formal inbound auth).
+5. Notification preferences (which events push to bell) and dropdown pagination.
+6. Per-app search/order polish and final UAT against suggested_layout mockups
+   with a full seeded demo run.
+7. Payroll: gross-to-net report PDF (payslip PDF exists), NHIF/NSSF/PAYE band
+   helpers (KE statutory), and a payment-file export.
+
+================================================================================
+Verification command used:
+  .venv\Scripts\python.exe manage.py check        -> 0 issues
+  .venv\Scripts\python.exe manage.py test apps    -> 115 passed, 0 failed
+  migration plan count applied                    -> 72
+================================================================================

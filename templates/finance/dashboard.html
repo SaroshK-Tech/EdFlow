@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="small text-muted">Collected this year</div>
+            <div class="stat-val text-primary fw-bold">{{ income_year }}</div>
+            <div class="small text-muted">Lifetime: {{ income_all }}</div>
+            <div class="small text-success mt-1">This month: {{ income_month }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="small text-muted">Expenses this year</div>
+            <div class="stat-val text-danger fw-bold">{{ expenses_year }}</div>
+            <div class="small text-muted">Lifetime: {{ expenses_all }}</div>
+            <div class="small text-danger mt-1">This month: {{ expenses_month }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="small text-muted">Refunds this year</div>
+            <div class="stat-val text-warning fw-bold">{{ refunds_year }}</div>
+            <div class="small text-muted">Lifetime: {{ refunds_all }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body">
+            <div class="small text-muted">Net position (YTD)</div>
+            <div class="stat-val fw-bold {% if net_year >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_year }}</div>
+            <div class="small text-muted mt-1">Income − expenses − refunds</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Outstanding fees & defaulters</span>
+                <a href="{% url 'fees:vouchers' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-receipt me-1"></i>Fee Vouchers</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Student</th><th>Class</th><th class="text-end">Outstanding</th><th>Due date</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for row in outstanding_rows %}
+                        <tr>
+                            <td class="fw-semibold">{{ row.student.full_name }}</td>
+                            <td>{{ row.student.klass|default:"—" }}</td>
+                            <td class="text-end fw-semibold text-danger">{{ row.due }}</td>
+                            <td>{{ row.due_date }}</td>
+                            <td>
+                                {% if row.overdue %}
+                                    <span class="badge text-bg-danger">Overdue</span>
+                                {% else %}
+                                    <span class="badge text-bg-warning">Due soon</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted small py-3">
+                            <i class="bi bi-check-circle text-success me-1"></i>No outstanding fee vouchers.
+                        </td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Revenue by fee head</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Fee head</th><th class="text-center">Payments</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for row in revenue_by_head %}
+                        <tr>
+                            <td>{{ row.fee_head__name }}</td>
+                            <td class="text-center">{{ row.n }}</td>
+                            <td class="text-end fw-semibold">{{ row.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted small py-3">No payments yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Expenses by category</span>
+                <a href="{% url 'finance:expense_add' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-lg me-1"></i>Add</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Category</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for row in expenses_by_category %}
+                        <tr>
+                            <td>{{ row.category__name|default:"Uncategorised" }}</td>
+                            <td class="text-end fw-semibold text-danger">{{ row.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted small py-3">No expenses yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Collections by method</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Method</th><th class="text-center">Count</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for row in payments_by_method %}
+                        <tr>
+                            <td><span class="text-capitalize">{{ row.method }}</span></td>
+                            <td class="text-center">{{ row.n }}</td>
+                            <td class="text-end fw-semibold">{{ row.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted small py-3">No payments yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 d-flex gap-3 flex-wrap">
+    <a href="{% url 'finance:expense_list' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-cart-x me-1"></i>Expenses</a>
+    <a href="{% url 'finance:refund_list' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-cash-coin me-1"></i>Refunds</a>
+    <a href="{% url 'finance:category_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-tags me-1"></i>Expense Categories</a>
+    <a href="{% url 'finance:reports' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-graph-up me-1"></i>Financial Reports</a>
+</div>
+{% endblock %}

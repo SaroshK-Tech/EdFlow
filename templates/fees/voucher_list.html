@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'fees:voucher_print' %}{% if current_status %}?status={{ current_status }}{% endif %}" target="_blank"><i class="bi bi-printer me-1"></i>Print All</a>
+        <a class="btn btn-primary" href="{% url 'fees:voucher_generate' %}"><i class="bi bi-stack me-1"></i>Generate Vouchers</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2">
+                {% include "partials/search_box.html" %}
+                <form method="get" class="d-flex align-items-center gap-1">
+                    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+                    <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">All statuses</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+            <span class="small text-muted">Voucher total: <strong>{{ voucher_total|floatformat:2 }}</strong></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Voucher</th>
+                        <th>Student</th>
+                        <th>Class</th>
+                        <th>Issued</th>
+                        <th>Due</th>
+                        <th class="text-end">Amount</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for v in vouchers %}
+                    <tr>
+                        <td><span class="badge text-bg-light">{{ v.voucher_number }}</span></td>
+                        <td>
+                            <a href="{% url 'students:detail' v.student.pk %}" class="fw-semibold text-decoration-none">{{ v.student.full_name }}</a>
+                            <div class="small text-muted">{{ v.student.admission_number }}</div>
+                        </td>
+                        <td>{{ v.student.klass|default:"—" }}{% if v.student.section %} / {{ v.student.section.name }}{% endif %}</td>
+                        <td>{{ v.issued_on }}</td>
+                        <td>{{ v.due_date }}</td>
+                        <td class="text-end fw-semibold">{{ v.total|floatformat:2 }}</td>
+                        <td><span class="badge text-bg-{% if v.status == 'issued' %}success{% elif v.status == 'cancelled' %}secondary{% else %}warning{% endif %}">{{ v.get_status_display }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'fees:voucher_detail' v.pk %}" class="btn btn-sm btn-outline-primary" title="View / Print"><i class="bi bi-printer"></i></a>
+                            <a href="{% url 'fees:voucher_delete' v.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-receipt"></i>
+                            {% if q or current_status %}No vouchers match the current filter.{% else %}No vouchers yet — use “Generate Vouchers” to bill a class in bulk.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

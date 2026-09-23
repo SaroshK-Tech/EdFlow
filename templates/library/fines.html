@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-danger-soft"><i class="bi bi-exclamation-circle"></i></span>
+            <div><div class="stat-value">₹{{ outstanding|floatformat:2 }}</div><div class="stat-label">Outstanding</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-check2-circle"></i></span>
+            <div><div class="stat-value">₹{{ collected|floatformat:2 }}</div><div class="stat-label">Collected</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Copy</th>
+                        <th>Member</th>
+                        <th>Reason</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for fine in fines %}
+                    <tr class="{% if not fine.paid %}table-warning{% endif %}">
+                        <td>
+                            {% if fine.issue %}<span class="badge text-bg-light">{{ fine.issue.copy.barcode }}</span>{% else %}—{% endif %}
+                        </td>
+                        <td class="fw-semibold">{{ fine.issue.member.name|default:"—" }}</td>
+                        <td>{{ fine.reason }}</td>
+                        <td class="fw-semibold">₹{{ fine.amount|floatformat:2 }}</td>
+                        <td>{{ fine.created_at|date:"d M Y H:i" }}</td>
+                        <td>
+                            {% if fine.paid %}
+                                <span class="badge text-bg-success">Paid</span>
+                            {% else %}
+                                <span class="badge text-bg-danger">Unpaid</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if not fine.paid %}
+                                <form method="post" action="{% url 'library:fine_pay' fine.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-cash-coin me-1"></i>Mark Paid</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-cash-coin"></i>
+                            No fines recorded yet.
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

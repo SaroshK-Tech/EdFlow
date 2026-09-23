@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ homework.title }}</h1>
+        <p class="page-subtitle mb-0">{{ homework.get_kind_display }} · {{ homework.klass }}{% if homework.section %} / {{ homework.section.name }}{% endif %} · {{ homework.subject }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="{% url 'academics:homework' %}"><i class="bi bi-arrow-left me-1"></i>Homework</a>
+        <a class="btn btn-outline-primary" href="{% url 'academics:homework_edit' homework.pk %}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <a class="btn btn-outline-danger" href="{% url 'academics:homework_delete' homework.pk %}"><i class="bi bi-trash me-1"></i>Delete</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Details</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3"><div class="text-muted small">Type</div><span class="badge {% if homework.kind == 'assignment' %}text-bg-warning{% else %}text-bg-primary{% endif %}">{{ homework.get_kind_display }}</span></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Class</div><div class="fw-semibold">{{ homework.klass }}{% if homework.section %} / {{ homework.section.name }}{% endif %}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Subject</div><div class="fw-semibold">{{ homework.subject }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Teacher</div><div class="fw-semibold">{{ homework.teacher.full_name }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Due date</div>
+                        <div class="fw-semibold {% if homework.due_date < today %}text-danger{% endif %}">{{ homework.due_date }}{% if homework.due_date < today %} <span class="badge text-bg-danger">Overdue</span>{% endif %}</div>
+                    </div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Submissions</div><div class="fw-semibold">{{ submissions|length }}</div></div>
+                    {% if homework.attachments %}
+                        <div class="col-12"><div class="text-muted small">Attachment</div><a href="{{ homework.attachments.url }}"><i class="bi bi-paperclip me-1"></i>{{ homework.attachments.name }}</a></div>
+                    {% endif %}
+                </div>
+                <hr>
+                {{ homework.description|linebreaksbr }}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">Submissions ({{ submissions|length }})</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Marks</th>
+                                <th>Remark</th>
+                                <th class="text-end">Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for submission, grade_form in grade_rows %}
+                            <tr>
+                                <td class="fw-semibold">
+                                    {{ submission.student.full_name }}
+                                    {% if submission.attachment %}<div class="small text-muted"><a href="{{ submission.attachment.url }}"><i class="bi bi-paperclip me-1"></i>file</a></div>{% endif %}
+                                </td>
+                                <td class="small">{{ submission.submitted_on|date:"d M Y H:i" }}</td>
+                                <td>
+                                    <span class="badge text-bg-{% if submission.status == 'graded' %}success{% elif submission.status == 'late' %}danger{% elif submission.status == 'pending' %}secondary{% else %}info{% endif %}">{{ submission.get_status_display }}</span>
+                                </td>
+                                <td>{{ submission.marks|default:"—" }}</td>
+                                <td class="small text-muted">{{ submission.teacher_remark|default:"—" }}</td>
+                                <td class="text-end">
+                                    <form method="post" action="{% url 'academics:submission_grade' submission.pk %}" class="d-flex gap-1 justify-content-end">
+                                        {% csrf_token %}
+                                        <input type="number" step="0.01" name="marks" value="{{ grade_form.marks.value|default:'' }}" class="form-control form-control-sm" style="width: 90px;" placeholder="Marks">
+                                        <input type="text" name="teacher_remark" value="{{ grade_form.teacher_remark.value|default:'' }}" class="form-control form-control-sm" style="width: 130px;" placeholder="Remark">
+                                        <button class="btn btn-sm btn-outline-success" title="Save grade"><i class="bi bi-check-lg"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="6">
+                                <div class="empty-state"><i class="bi bi-inbox"></i>No submissions yet.</div>
+                            </td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header">Submit Work</div>
+            <div class="card-body">
+                {% if my_student %}
+                    <p class="small text-muted">Submitting as <strong>{{ my_student.full_name }}</strong>.</p>
+                {% endif %}
+                <form method="post" enctype="multipart/form-data" action="{% url 'academics:submission_add' homework.pk %}">
+                    {% csrf_token %}
+                    {% include "partials/form_fields.html" %}
+                    <button class="btn btn-primary w-100" type="submit"><i class="bi bi-send me-1"></i>Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

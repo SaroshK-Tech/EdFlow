@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3">
+    <div class="col-xl-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Standings</span>
+                <span class="badge text-bg-light">{{ point_count }} point awards</span>
+            </div>
+            <div class="card-body">
+                {% for row in rows %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="d-inline-flex align-items-center gap-2">
+                                <span class="badge rounded-circle" style="width:18px;height:18px;background:{{ row.house.color|default:'#4f46e5' }};"></span>
+                                <strong>{{ row.rank }}. {{ row.house.name }}</strong>
+                            </span>
+                            <span class="fw-semibold">{{ row.total }} pts</span>
+                        </div>
+                        <div class="progress" style="height: 16px;">
+                            <div class="progress-bar" style="width: {% widthratio row.total top_points 100 %}%; background: {{ row.house.color|default:'#4f46e5' }};"></div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <i class="bi bi-trophy"></i>
+                        No houses yet — points will appear once houses exist.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="d-grid gap-2">
+            <a class="btn btn-outline-primary" href="{% url 'houses:points_add' %}"><i class="bi bi-star-plus me-1"></i>Award Points</a>
+            <a class="btn btn-outline-primary" href="{% url 'houses:points' %}"><i class="bi bi-star me-1"></i>All Points</a>
+            <a class="btn btn-outline-primary" href="{% url 'houses:activity_add' %}"><i class="bi bi-calendar-plus me-1"></i>Add Activity</a>
+            <a class="btn btn-outline-primary" href="{% url 'houses:results_add' %}"><i class="bi bi-trophy me-1"></i>Record Result</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

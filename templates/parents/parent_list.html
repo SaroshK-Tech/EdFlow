@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Parent" primary_url="parents:add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ parents|length }} displayed</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Parent</th>
+                        <th>Relationship</th>
+                        <th>Phone</th>
+                        <th>WhatsApp</th>
+                        <th>Children</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for guardian in parents %}
+                    <tr>
+                        <td class="fw-semibold">
+                            <a href="{% url 'parents:detail' guardian.pk %}" class="text-decoration-none">{{ guardian.full_name }}</a>
+                            {% if guardian.is_primary %}<span class="badge text-bg-primary ms-1">Primary</span>{% endif %}
+                        </td>
+                        <td>{{ guardian.relationship|default:"—" }}</td>
+                        <td>{{ guardian.phone|default:"—" }}</td>
+                        <td>{{ guardian.whatsapp_number|default:"—" }}</td>
+                        <td>
+                            {% for s in guardian.students.all %}
+                                <a href="{% url 'students:detail' s.pk %}" class="badge text-bg-light text-decoration-none">{{ s.admission_number }}</a>
+                            {% empty %}—{% endfor %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'parents:edit' guardian.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'parents:delete' guardian.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-person-badge"></i>
+                            {% if q %}No parents match "{{ q }}".{% else %}No parents yet — add your first guardian.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

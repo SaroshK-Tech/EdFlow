@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'hr:leaves' %}"><i class="bi bi-calendar-check me-1"></i>Leave Requests</a>
+        <a class="btn btn-outline-primary" href="{% url 'hr:employees' %}"><i class="bi bi-people me-1"></i>Employees</a>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Add / Update Balance</span>
+        <span class="badge text-bg-light">Year {{ year }}</span>
+    </div>
+    <div class="card-body">
+        <form method="post" class="row g-2 align-items-end">
+            {% csrf_token %}
+            <input type="hidden" name="balance_add" value="1">
+            <input type="hidden" name="year" value="{{ year }}">
+            <div class="col-md-3">
+                <label class="form-label small">Staff</label>
+                <select name="staff" class="form-select form-select-sm">
+                    {% for member in staff_members %}
+                        <option value="{{ member.pk }}">{{ member.full_name }} ({{ member.employee_code }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small">Leave Type</label>
+                <select name="leave_type" class="form-select form-select-sm">
+                    {% for lt in leave_types %}
+                        <option value="{{ lt.pk }}">{{ lt.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Entitled</label>
+                <input type="number" min="0" name="entitled" value="0" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Used</label>
+                <input type="number" min="0" name="used" value="0" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-plus-lg me-1"></i>Save Balance</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Balances for {{ year }}</span>
+        <form method="get" class="d-flex align-items-center gap-1">
+            <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                {% for y in years %}
+                    <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    {% if balances %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-sm align-middle">
+                    <thead>
+                        <tr>
+                            <th>Staff</th>
+                            <th>Leave Type</th>
+                            <th style="width: 110px;">Entitled</th>
+                            <th style="width: 110px;">Used</th>
+                            <th>Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for balance in balances %}
+                        <tr>
+                            <td class="fw-semibold">{{ balance.staff.full_name }} <span class="badge text-bg-light">{{ balance.staff.employee_code }}</span></td>
+                            <td>{{ balance.leave_type.name }}</td>
+                            <td><input type="number" min="0" class="form-control form-control-sm" name="entitled_{{ balance.pk }}" value="{{ balance.entitled }}"></td>
+                            <td><input type="number" min="0" class="form-control form-control-sm" name="used_{{ balance.pk }}" value="{{ balance.used }}"></td>
+                            <td>
+                                <span class="badge text-bg-{% if balance.remaining <= 0 %}danger{% elif balance.remaining <= 3 %}warning{% else %}success{% endif %}">{{ balance.remaining }}</span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end bg-transparent">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Changes</button>
+        </div>
+    </form>
+    {% else %}
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-pie-chart"></i>
+                No leave balances for {{ year }} — use the form above to add one.
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

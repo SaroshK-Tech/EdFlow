@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ heading|default:"Delete Assignment" }}</h1>
+        <p class="page-subtitle mb-0">{{ object }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p class="mb-3">Remove <strong>{{ object.student.full_name }}</strong> from route <strong>{{ object.route.name }}</strong> ({{ object.get_direction_display }})? This cannot be undone.</p>
+        <form method="post" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="{% url 'transport:assign' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <form class="d-flex flex-wrap gap-2" method="get">
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-upc-scan"></i></span>
+                    <input type="search" class="form-control" name="barcode" value="{{ barcode }}" placeholder="Scan/search barcode…">
+                </div>
+                <div class="input-group input-group-sm" style="width: 200px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-person"></i></span>
+                    <input type="search" class="form-control" name="member" value="{{ member_q }}" placeholder="Search member…">
+                </div>
+                <button class="btn btn-sm btn-outline-primary" type="submit">Filter</button>
+                {% if barcode or member_q %}<a href="." class="small text-muted align-self-center">Clear</a>{% endif %}
+            </form>
+            <span class="small text-muted">{{ issues.count }} open issue(s) · <span class="text-danger">{{ overdue_count }} overdue</span></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Barcode</th>
+                        <th>Book</th>
+                        <th>Member</th>
+                        <th>Issued</th>
+                        <th>Due</th>
+                        <th>Fine</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for issue in issues %}
+                    <tr class="{% if issue.is_overdue %}table-danger{% endif %}">
+                        <td><span class="badge text-bg-light">{{ issue.copy.barcode }}</span></td>
+                        <td>{{ issue.copy.book.title }}</td>
+                        <td class="fw-semibold">{{ issue.member.name }}</td>
+                        <td>{{ issue.issued_on }}</td>
+                        <td>
+                            {{ issue.due_date }}
+                            {% if issue.is_overdue %}<span class="badge text-bg-danger ms-1">overdue</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if issue.is_overdue %}
+                                <span class="text-danger fw-semibold">₹{{ issue.computed_fine|floatformat:2 }}</span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <form method="post" action="{% url 'library:return' issue.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-arrow-return-left me-1"></i>Return</button>
+                            </form>
+                            <form method="post" action="{% url 'library:renew' issue.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Extend by {{ settings.loan_duration_days }} days"><i class="bi bi-arrow-clockwise me-1"></i>Renew</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-arrow-return-left"></i>
+                            {% if barcode or member_q %}No open issues match the filter.{% else %}Nothing issued right now — issue a book from the Books page.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

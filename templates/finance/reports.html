@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="mb-3 text-end">
+    <div class="dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="bi bi-download me-1"></i>Export cash-flow</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'finance:cashflow_export' %}"><i class="bi bi-file-earmark-excel me-2"></i>Excel (.xlsx)</a></li>
+            <li><a class="dropdown-item" href="{% url 'finance:cashflow_export' %}?format=csv"><i class="bi bi-filetype-csv me-2"></i>CSV</a></li>
+        </ul>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-primary-soft mb-2"><i class="bi bi-graph-up-arrow"></i></span>
+            <div class="stat-val">{{ income_all }}</div>
+            <div class="small text-muted">Total collected (lifetime)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-danger-soft mb-2"><i class="bi bi-graph-down-arrow"></i></span>
+            <div class="stat-val">{{ expenses_all }}</div>
+            <div class="small text-muted">Total expenses (lifetime)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-warning-soft mb-2"><i class="bi bi-cash-coin"></i></span>
+            <div class="stat-val">{{ refunds_all }}</div>
+            <div class="small text-muted">Total refunds (lifetime)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-success-soft mb-2"><i class="bi bi-currency-exchange"></i></span>
+            <div class="stat-val {% if net_year >= 0 %}text-success{% else %}text-danger{% endif %}">{{ net_year }}</div>
+            <div class="small text-muted">Net position (YTD)</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Income vs expenses by month</span></div>
+            <div class="card-body">
+                <canvas id="financeChart" height="220"></canvas>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Recent payments</span>
+                <a href="{% url 'fees:payments' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right me-1"></i>All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Receipt</th><th>Student</th><th>Head</th><th class="text-end">Amount</th><th>Date</th></tr></thead>
+                    <tbody>
+                    {% for p in recent_payments %}
+                        <tr>
+                            <td class="small">{{ p.receipt_number }}</td>
+                            <td class="fw-semibold">{{ p.student.full_name }}</td>
+                            <td>{{ p.fee_head.name }}</td>
+                            <td class="text-end fw-semibold text-success">{{ p.amount }}</td>
+                            <td>{{ p.paid_on }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="text-center text-muted small py-3">No payments yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Recent expenses</span>
+                <a href="{% url 'finance:expense_list' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-arrow-right me-1"></i>All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Date</th><th>Expense</th><th>Category</th><th class="text-end">Amount</th></tr></thead>
+                    <tbody>
+                    {% for e in recent_expenses %}
+                        <tr>
+                            <td>{{ e.expense_date }}</td>
+                            <td class="fw-semibold">{{ e.title }}</td>
+                            <td>{{ e.category|default:"—" }}</td>
+                            <td class="text-end fw-semibold text-danger">{{ e.amount }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted small py-3">No expenses yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold">Revenue by fee head</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Fee head</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for row in revenue_by_head %}
+                        <tr>
+                            <td>{{ row.fee_head__name }}</td>
+                            <td class="text-end fw-semibold">{{ row.total }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="2" class="text-center text-muted small py-3">No payments yet.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var months = [];
+    var income = [];
+    var expense = [];
+    var byMonth = {
+        {% for row in income_by_month %}"{{ row.month|date:'Y-m' }}": {{ row.total|default:0 }},
+        {% endfor %}
+    };
+    var expByMonth = {
+        {% for row in expenses_by_month %}"{{ row.month|date:'Y-m' }}": {{ row.total|default:0 }},
+        {% endfor %}
+    };
+    var keys = Object.keys(byMonth);
+    var expKeys = Object.keys(expByMonth);
+    var all = [...new Set([...keys, ...expKeys])].sort();
+    all.forEach(function (k) {
+        months.push(k);
+        income.push(byMonth[k] || 0);
+        expense.push(expByMonth[k] || 0);
+    });
+    var el = document.getElementById('financeChart');
+    if (!el || typeof Chart === 'undefined') return;
+    new Chart(el, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                { label: 'Income', data: income, backgroundColor: 'rgba(22,163,74,0.7)' },
+                { label: 'Expenses', data: expense, backgroundColor: 'rgba(220,38,38,0.7)' }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Student" primary_url="students:add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ students|length }} displayed of {{ paginator.count }}</span>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mb-2">
+            <a href="{% url 'students:export_csv' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Export</a>
+            <a href="{% url 'students:import' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-upload me-1"></i>Import</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Admission</th>
+                        <th>Student</th>
+                        <th>Class / Section</th>
+                        <th>House</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for student in students %}
+                    <tr>
+                        <td>
+                            <span class="badge text-bg-light">{{ student.admission_number }}</span>
+                            {% if student.roll_number %}<div class="small text-muted">Roll {{ student.roll_number }}</div>{% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'students:detail' student.pk %}" class="fw-semibold text-decoration-none">{{ student.full_name }}</a>
+                            <div class="small text-muted">{{ student.gender|title|default:"—" }} · {{ student.date_of_birth|default:"—" }}</div>
+                        </td>
+                        <td>{{ student.klass|default:"—" }}{% if student.section %} / {{ student.section.name }}{% endif %}</td>
+                        <td>{{ student.house|default:"—" }}</td>
+                        <td class="small">{{ student.phone|default:"—" }}</td>
+                        <td>
+                            <span class="badge text-bg-{% if student.status == 'active' %}success{% elif student.status == 'suspended' %}danger{% else %}secondary{% endif %}">{{ student.get_status_display }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'students:detail' student.pk %}" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'students:edit' student.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <i class="bi bi-people"></i>
+                                {% if q %}No students match "{{ q }}".{% else %}No students yet — add your first student.{% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Delete Book</h1>
+        <p class="page-subtitle mb-0">{{ book }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p class="mb-3">Delete <strong>{{ book }}</strong>{% if book.copies.count %} — note this book has {{ book.copies.count }} copy/copies{% endif %}? This cannot be undone.</p>
+        <form method="post" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="{% url 'library:list' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

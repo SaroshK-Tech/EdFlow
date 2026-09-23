@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Homework" primary_url="academics:homework_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            {% include "partials/search_box.html" %}
+            <div class="d-flex gap-2 flex-wrap small">
+                <a class="btn btn-sm {% if current_kind == 'homework' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?kind=homework">Homework</a>
+                <a class="btn btn-sm {% if current_kind == 'assignment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="?kind=assignment">Assignments</a>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="if(this.value)location.href='?{% if q %}q={{ q }}&{% endif %}{% if current_kind %}kind={{ current_kind }}&{% endif %}klass='+this.value;">
+                    <option value="">All classes</option>
+                    {% for klass in klasses %}
+                        <option value="{{ klass.pk }}" {% if current_klass == klass.pk|stringformat:"s" %}selected{% endif %}>{{ klass.name }}</option>
+                    {% endfor %}
+                </select>
+                <select class="form-select form-select-sm" style="width: auto;" onchange="if(this.value)location.href='?{% if q %}q={{ q }}&{% endif %}{% if current_kind %}kind={{ current_kind }}&{% endif %}{% if current_klass %}klass={{ current_klass }}&{% endif %}subject='+this.value;">
+                    <option value="">All subjects</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.pk }}" {% if current_subject == subject.pk|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+                {% if current_klass or current_subject or current_kind or q %}
+                    <a href="." class="small text-muted align-self-center">Clear</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Class</th>
+                        <th>Subject</th>
+                        <th>Teacher</th>
+                        <th>Due</th>
+                        <th>Submissions</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in homeworks %}
+                    <tr>
+                        <td class="fw-semibold">
+                            <a class="text-decoration-none" href="{% url 'academics:homework_detail' item.pk %}">{{ item.title }}</a>
+                        </td>
+                        <td>
+                            {% if item.kind == 'assignment' %}
+                                <span class="badge text-bg-warning">Assignment</span>
+                            {% else %}
+                                <span class="badge text-bg-primary">Homework</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ item.klass }}{% if item.section %} / {{ item.section.name }}{% endif %}</td>
+                        <td>{{ item.subject }}</td>
+                        <td>{{ item.teacher.full_name|default:"—" }}</td>
+                        <td>
+                            {{ item.due_date }}
+                            {% if item.due_date < today %}
+                                <span class="badge text-bg-danger ms-1">Overdue</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge text-bg-light">{{ item.submissions.count }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a href="{% url 'academics:homework_detail' item.pk %}" class="btn btn-sm btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'academics:homework_edit' item.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'academics:homework_delete' item.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <i class="bi bi-pencil-square"></i>
+                            {% if q %}No homework matches "{{ q }}".{% else %}No homework yet — assign your first task.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

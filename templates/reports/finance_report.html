@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-success-soft mb-2"><i class="bi bi-graph-up-arrow"></i></span>
+            <div class="stat-val">{{ summary.income_year }}</div>
+            <div class="small text-muted">Collections (YTD)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-danger-soft mb-2"><i class="bi bi-graph-down-arrow"></i></span>
+            <div class="stat-val">{{ summary.expenses_year }}</div>
+            <div class="small text-muted">Expenses (YTD)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-warning-soft mb-2"><i class="bi bi-cash-coin"></i></span>
+            <div class="stat-val">{{ summary.refunds_year }}</div>
+            <div class="small text-muted">Refunds (YTD)</div>
+        </div></div>
+    </div>
+    <div class="col-md-3">
+        <div class="card"><div class="card-body text-center">
+            <span class="stat-icon bg-info-soft mb-2"><i class="bi bi-currency-exchange"></i></span>
+            <div class="stat-val {% if summary.net >= 0 %}text-success{% else %}text-danger{% endif %}">{{ summary.net }}</div>
+            <div class="small text-muted">Net (YTD)</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Income vs expenses by month</span></div>
+            <div class="card-body">
+                <canvas id="financeChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold">Expenses by category</span></div>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                    <thead><tr><th>Category</th><th class="text-center">Items</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for row in expense_by_category %}
+                        <tr><td>{{ row.category__name|default:"Uncategorised" }}</td><td class="text-center">{{ row.n }}</td><td class="text-end fw-semibold text-danger">{{ row.total }}</td></tr>
+                    {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted small py-3">No expenses.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 d-flex align-items-center gap-3">
+    <div class="btn-group btn-group-sm">
+        <a class="btn btn-sm btn-outline-success" href="{% url 'reports:finance_export_xlsx' %}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'reports:finance_export_pdf' %}"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+    </div>
+    <a href="{% url 'reports:list' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>All reports</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'vendor/chartjs/chart.umd.min.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var months = [], income = [], expense = [];
+    var inc = { {% for row in income_by_month %}"{{ row.month|date:'Y-m' }}": {{ row.total }},{% endfor %} };
+    var exp = { {% for row in expenses_by_month %}"{{ row.month|date:'Y-m' }}": {{ row.total }},{% endfor %} };
+    var all = [...new Set([...Object.keys(inc), ...Object.keys(exp)])].sort();
+    all.forEach(function (k) { months.push(k); income.push(inc[k] || 0); expense.push(exp[k] || 0); });
+    var el = document.getElementById('financeChart');
+    if (!el || typeof Chart === 'undefined') return;
+    new Chart(el, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                { label: 'Income', data: income, backgroundColor: 'rgba(22,163,74,0.7)' },
+                { label: 'Expenses', data: expense, backgroundColor: 'rgba(220,38,38,0.7)' }
+            ]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+});
+</script>
+{% endblock %}

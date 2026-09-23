@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ exam.name }}</h1>
+        <p class="page-subtitle mb-0">{{ page_subtitle }}{% if exam.academic_year %} · {{ exam.academic_year }}{% endif %}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        {% if exam.status == "draft" %}
+            <form method="post" action="{% url 'exams:status' exam.pk 'approved' %}">
+                {% csrf_token %}<button class="btn btn-outline-info" type="submit"><i class="bi bi-check2-circle me-1"></i>Approve</button>
+            </form>
+        {% endif %}
+        {% if exam.status == "approved" and result_count %}
+            <form method="post" action="{% url 'exams:status' exam.pk 'published' %}">
+                {% csrf_token %}<button class="btn btn-success" type="submit"><i class="bi bi-megaphone me-1"></i>Publish Results</button>
+            </form>
+        {% endif %}
+        <a class="btn btn-outline-primary" href="{% url 'results:detail' exam.pk %}"><i class="bi bi-clipboard-data me-1"></i>Results</a>
+        <a class="btn btn-outline-secondary" href="{% url 'exams:edit' exam.pk %}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <a class="btn btn-outline-danger" href="{% url 'exams:delete' exam.pk %}"><i class="bi bi-trash me-1"></i>Delete</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Subjects & Marks Entry</span>
+                <a href="{% url 'exams:subject_add' exam.pk %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i>Add Subjects</a>
+            </div>
+            <div class="card-body">
+                {% if subject_groups %}
+                    {% for klass, subjects in subject_groups.items %}
+                        <div class="mb-3">
+                            <div class="fw-semibold mb-2">{{ klass.name }}</div>
+                            <ul class="list-group list-group-flush">
+                                {% for es in subjects %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                        <div>
+                                            <i class="bi bi-book me-2 text-muted"></i>{{ es.subject.name }}
+                                            <span class="badge text-bg-light">Max {{ es.max_marks }} / Pass {{ es.pass_marks }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a href="{% url 'exams:marks_entry' es.pk %}" class="btn btn-sm {% if es.marks.count %}btn-outline-success{% else %}btn-outline-primary{% endif %}">
+                                                <i class="bi bi-pencil-square me-1"></i>Marks
+                                            </a>
+                                            <a href="{% url 'exams:subject_delete' es.pk %}" class="btn btn-sm btn-outline-danger" title="Remove"><i class="bi bi-x"></i></a>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state py-4"><i class="bi bi-book"></i>No subjects assigned yet — add subjects for each class.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">Exam Overview</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3"><div class="text-muted small">Exam Type</div><div class="fw-semibold">{{ exam.exam_type.name }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Status</div><span class="badge text-bg-{% if exam.status == 'published' %}success{% elif exam.status == 'approved' %}info{% else %}warning{% endif %}">{{ exam.get_status_display }}</span></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Start</div><div class="fw-semibold">{{ exam.start_date|default:"—" }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">End</div><div class="fw-semibold">{{ exam.end_date|default:"—" }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Classes</div><div class="fw-semibold">{{ subject_groups|length }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Students</div><div class="fw-semibold">{{ total_students }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Results</div><div class="fw-semibold">{{ result_count }}</div></div>
+                    <div class="col-6 col-md-3"><div class="text-muted small">Weightage</div><div class="fw-semibold">{{ exam.exam_type.weightage }}%</div></div>
+                </div>
+                {% if exam.remarks %}<div class="alert alert-light border mt-3 mb-0"><i class="bi bi-chat-quote me-1"></i>{{ exam.remarks }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Results — {{ result_count }} row(s)</span>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'results:sheet' exam.pk %}" class="btn btn-sm btn-outline-secondary" target="_blank"><i class="bi bi-printer me-1"></i>Result Sheet</a>
+                    <form method="post" action="{% url 'results:generate' exam.pk %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm {% if result_count %}btn-outline-primary{% else %}btn-primary{% endif %}" type="submit">
+                            <i class="bi bi-gear me-1"></i>{% if result_count %}Recompute{% else %}Generate Results{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if result_count %}
+                    <div class="alert alert-success border-0 mb-0"><i class="bi bi-check-circle me-1"></i>Results are generated for this exam. Open the Results page to review, print and publish.</div>
+                {% else %}
+                    <div class="empty-state py-4"><i class="bi bi-clipboard-data"></i>No results yet — enter marks, then generate results.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

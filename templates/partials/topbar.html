@@ -1,0 +1,56 @@
+{% load static %}
+<header class="app-topbar">
+    <button class="btn btn-link topbar-toggle" type="button" data-sidebar-toggle aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <form class="topbar-search d-none d-md-flex" role="search" method="get" action="{% url 'core:search' %}">
+        <i class="bi bi-search"></i>
+        <input class="form-control" type="search" name="q" placeholder="Search Students, Parents, Teachers..." aria-label="Search">
+    </form>
+
+    <div class="ms-auto d-flex align-items-center gap-3">
+        <div class="dropdown">
+            <button class="topbar-icon position-relative" type="button" data-bs-toggle="dropdown" title="Notifications">
+                <i class="bi bi-bell"></i>
+                {% if notifications.unread_count > 0 %}
+                    <span class="badge-dot"></span>
+                {% endif %}
+            </button>
+            <div class="dropdown-menu dropdown-menu-end shadow p-0 mt-1" style="width: 320px;">
+                <h6 class="dropdown-header">Notifications</h6>
+                {% for note in notifications %}
+                    <a class="dropdown-item d-flex align-items-center gap-2 small" href="{% url 'notifications:mark_read' note.pk %}" style="white-space: normal;">
+                        <i class="bi bi-{{ note.icon }} text-primary"></i>
+                        <span>{{ note.text }}</span>
+                    </a>
+                {% empty %}
+                    <div class="dropdown-item text-muted small">No notifications yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+        <a class="topbar-icon d-none d-sm-block" href="{% url 'communication:list' %}" title="Messages">
+            <i class="bi bi-chat-dots"></i>
+        </a>
+
+        <div class="dropdown">
+            <div class="topbar-user d-flex align-items-center" role="button" data-bs-toggle="dropdown">
+                <div class="text-end d-none d-sm-block">
+                    <p class="mb-0 topbar-user-name">{{ request.user.get_full_name|default:request.user.username }}</p>
+                    <p class="mb-0 topbar-user-role">{{ request.user.role.name|default:"Admin" }}</p>
+                </div>
+                <span class="user-avatar">{{ request.user.first_name|default:request.user.username|slice:":1"|upper }}</span>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}"><i class="bi bi-key me-2"></i>Change password</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form method="post" action="{% url 'accounts:logout' %}">
+                        {% csrf_token %}
+                        <button class="dropdown-item" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Sign out</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>

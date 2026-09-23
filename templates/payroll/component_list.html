@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Component" primary_url="payroll:component_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <a href="{% url 'payroll:list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Payroll runs</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Kind</th>
+                        <th>Value</th>
+                        <th>Applies to</th>
+                        <th>Taxable</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for component in components %}
+                    <tr>
+                        <td class="fw-semibold">{{ component.name }}</td>
+                        <td><span class="badge text-bg-{% if component.kind == 'allowance' %}success{% else %}danger{% endif %}">{{ component.get_kind_display }}</span></td>
+                        <td>
+                            {% if component.amount %}{{ component.amount }}{% endif %}
+                            {% if component.percentage %}{{ component.percentage }}%{% endif %}
+                            {% if not component.amount and not component.percentage %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td>{{ component.get_applies_to_display }}</td>
+                        <td>{% if component.is_taxable %}<i class="bi bi-check-lg text-success"></i>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                        <td>
+                            <span class="badge text-bg-{% if component.active %}success{% else %}secondary{% endif %}">{% if component.active %}Active{% else %}Inactive{% endif %}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'payroll:component_edit' component.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'payroll:component_delete' component.pk %}" class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7">
+                        <div class="empty-state">
+                            <i class="bi bi-wallet2"></i>
+                            {% if q %}No components match "{{ q }}".{% else %}No salary components yet — add allowances and deductions.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

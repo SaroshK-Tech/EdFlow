@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            <div class="card">
+                <div class="card-header">Upload CSV</div>
+                <div class="card-body">
+                    {% include "partials/field.html" with field=form.csv_file %}
+                    <div class="form-check mt-3">
+                        {{ form.skip_guardians }}
+                        <label class="form-check-label" for="{{ form.skip_guardians.id_for_label }}">
+                            {{ form.skip_guardians.label }}
+                        </label>
+                        <div class="form-text">{{ form.skip_guardians.help_text }}</div>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        The import runs <strong>fully offline</strong>: the file is parsed and validated on this
+                        server, you review a preview, then valid rows are committed.
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-transparent">
+                    <a href="{% url 'students:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-eye me-1"></i>Validate & preview
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Supported columns</div>
+            <div class="card-body small">
+                <p class="mb-2">Headers are matched by name. Any order works. Blank optional columns are skipped.</p>
+                <span class="badge text-bg-primary">Required</span> Admission No, First Name.
+                <ul class="list-unstyled mb-0 mt-2">
+                    {% for label in import_columns %}
+                        <li><i class="bi bi-dash"></i> {{ label }}</li>
+                    {% endfor %}
+                </ul>
+                <p class="mt-3 mb-0">
+                    Tip: use the <a href="{% url 'students:export_csv' %}">CSV export</a> as a ready template.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

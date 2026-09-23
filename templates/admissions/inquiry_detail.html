@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle mb-0">{{ inquiry.inquiry_number }} · applied {{ inquiry.applied_on|default:inquiry.created_at|date:"d M Y" }}</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge text-bg-{% if inquiry.status == 'enrolled' %}success{% elif inquiry.status == 'rejected' %}danger{% elif inquiry.status == 'pending' %}warning{% elif inquiry.status == 'offered' or inquiry.status == 'accepted' %}info{% else %}secondary{% endif %}" style="font-size:.85rem;">
+            {{ inquiry.get_status_display }}
+        </span>
+        <a href="{% url 'admissions:edit' inquiry.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit</a>
+        {% if not inquiry.enrollment and inquiry.status == 'accepted' or inquiry.status == 'offered' %}
+            <a href="{% url 'admissions:enroll' inquiry.pk %}" class="btn btn-success"><i class="bi bi-person-plus me-1"></i>Enroll Student</a>
+        {% endif %}
+        {% if inquiry.enrollment %}
+            <a href="{% url 'students:detail' inquiry.enrollment.pk %}" class="btn btn-success"><i class="bi bi-person-check me-1"></i>{{ inquiry.enrollment.admission_number }}</a>
+        {% endif %}
+        <a href="{% url 'admissions:list' %}" class="btn btn-light"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="user-avatar" style="width:56px;height:56px;font-size:1.5rem;">{{ inquiry.student_first_name|slice:":1" }}</span>
+                    <div>
+                        <h5 class="mb-0">{{ inquiry.applicant_name }}</h5>
+                        <div class="small text-muted">{{ inquiry.gender|default:"Gender n/a" }}{% if inquiry.date_of_birth %} · Born {{ inquiry.date_of_birth }}{% endif %}</div>
+                    </div>
+                </div>
+                <div class="row text-start small g-2">
+                    <div class="col-6"><span class="text-muted">Class applying for</span><br><strong>{{ inquiry.klass|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Previous school</span><br><strong>{{ inquiry.previous_school|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Guardian</span><br><strong>{{ inquiry.guardian_name|default:"—" }}</strong></div>
+                    <div class="col-6"><span class="text-muted">Guardian phone</span><br><strong>{{ inquiry.guardian_phone|default:"—" }}</strong></div>
+                    {% if inquiry.guardian_email %}<div class="col-12"><span class="text-muted">Email</span><br><strong>{{ inquiry.guardian_email }}</strong></div>{% endif %}
+                    {% if inquiry.address %}<div class="col-12"><span class="text-muted">Address</span><br><strong>{{ inquiry.address }}</strong></div>{% endif %}
+                    {% if inquiry.medical_notes %}<div class="col-12"><span class="text-muted">Medical notes</span><br><strong>{{ inquiry.medical_notes }}</strong></div>{% endif %}
+                </div>
+                {% if inquiry.notes %}<hr><p class="small mb-0">{{ inquiry.notes }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Collected Documents</span>
+                <span class="badge text-bg-light">{{ inquiry.documents.count }}</span>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for doc in inquiry.documents.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <div class="small">
+                                <strong>{{ doc.get_doc_type_display }}</strong>
+                                {% if doc.note %}<div class="text-muted">{{ doc.note }}</div>{% endif %}
+                                <div class="text-muted">{{ doc.received_at|date:"d M Y" }}</div>
+                            </div>
+                            <div class="d-flex gap-1">
+                                {% if doc.file %}<a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View"><i class="bi bi-eye"></i></a>{% endif %}
+                                <a href="{% url 'admissions:document_delete' doc.pk %}" class="btn btn-sm btn-outline-danger" title="Remove"><i class="bi bi-x"></i></a>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item small text-muted px-0">No documents recorded yet.</li>
+                    {% endfor %}
+                </ul>
+                <form method="post" action="{% url 'admissions:document_add' inquiry.pk %}" enctype="multipart/form-data" class="mt-3">
+                    {% csrf_token %}
+                    {% for field in document_form %}
+                        <div class="mb-2">
+                            {% if field.name == "doc_type" %}{{ field.label_tag }}{% endif %}
+                            {{ field }}
+                            {% for err in field.errors %}<div class="form-text text-danger">{{ err }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-paperclip me-1"></i>Record document</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header">Admission Workflow</div>
+            <div class="card-body">
+                {% include "partials/admission_workflow.html" %}
+            </div>
+        </div>
+
+        <div class="card mb-3">
+            <div class="card-header">Interview &amp; Test</div>
+            <div class="card-body">
+                <div class="row small text-start g-2 mb-3">
+                    <div class="col-4"><span class="text-muted">Interview</span><br><strong>{{ inquiry.interview_date|default:"—" }}</strong></div>
+                    <div class="col-4"><span class="text-muted">Test score</span><br><strong>{{ inquiry.test_score|default:"—" }}{% if inquiry.test_score %} / 100{% endif %}</strong></div>
+                    <div class="col-4"><span class="text-muted">Decided by</span><br><strong>{{ inquiry.decision_by|default:"—" }}</strong></div>
+                    {% if inquiry.interview_notes %}<div class="col-12 mt-2"><span class="text-muted">Notes</span><br>{{ inquiry.interview_notes }}</div>{% endif %}
+                </div>
+                {% if inquiry.status != 'enrolled' %}
+                <form method="post" action="{% url 'admissions:decision' inquiry.pk %}">
+                    {% csrf_token %}
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small">Decision</label>
+                            {% for radio in decision_form.decision %}
+                                <div class="form-check">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label small" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">{{ decision_form.interview_date.label }}</label>
+                            {{ decision_form.interview_date }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">{{ decision_form.test_score.label }}</label>
+                            {{ decision_form.test_score }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">{{ decision_form.interview_notes.label }}</label>
+                            {{ decision_form.interview_notes }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-check2-circle me-1"></i>Record decision</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if inquiry.enrollment %}
+        <div class="card border-success">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">Enrolled</h6>
+                    <div class="small text-muted">
+                        {{ inquiry.enrollment.full_name }} · {{ inquiry.enrollment.admission_number }}
+                        · {{ inquiry.enrollment.klass|default:"No class" }}
+                        {% if inquiry.enrollment.section %}/ {{ inquiry.enrollment.section.name }}{% endif %}
+                        · Joined {{ inquiry.enrolled_at|default:"—" }}
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% with voucher=inquiry.enrollment.vouchers.first %}
+                        {% if voucher %}
+                            <a href="{% url 'fees:voucher_detail' voucher.pk %}" class="btn btn-sm btn-outline-primary">Fee Voucher {{ voucher.voucher_number }}</a>
+                        {% else %}
+                            <a href="{% url 'fees:voucher_generate' %}" class="btn btn-sm btn-outline-primary">Generate Fee Voucher</a>
+                        {% endif %}
+                    {% endwith %}
+                    <a href="{% url 'admissions:reports' %}" class="btn btn-sm btn-outline-secondary">Admission Reports</a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

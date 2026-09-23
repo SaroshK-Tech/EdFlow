@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Mark Attendance" primary_url="attendance:mark" %}
+
+<form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        {% for field in form %}
+            <div class="col-md-3">
+                <label class="form-label small" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+            </div>
+        {% endfor %}
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100" type="submit">Show roster</button>
+        </div>
+    </div>
+</form>
+
+{% if students %}
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="date" value="{{ form.date.value }}">
+        <input type="hidden" name="klass" value="{{ form.data.klass }}">
+        <input type="hidden" name="section" value="{{ form.data.section|default:'' }}">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Register for {{ form.date.value }} — {{ form.klass.value }}</span>
+                <span class="badge text-bg-light">{{ students|length }} students</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Roll</th>
+                                <th>Student</th>
+                                <th>Admission</th>
+                                <th>Status</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for student in students %}
+                            <tr>
+                                <td>{{ student.roll_number|default:"—" }}</td>
+                                <td>{{ student.full_name }}</td>
+                                <td class="small text-muted">{{ student.admission_number }}</td>
+                                <td style="min-width: 180px;">
+                                    <select class="form-select form-select-sm" name="status_{{ student.pk }}">
+                                        {% for value, label in statuses %}
+                                            <option value="{{ value }}" {% if value == 'present' %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td><input class="form-control form-control-sm" name="remark_{{ student.pk }}" placeholder="optional"></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between bg-transparent">
+                <a href="{% url 'attendance:list' %}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save attendance</button>
+            </div>
+        </div>
+    </form>
+{% elif form.data.klass %}
+    <div class="card"><div class="card-body">
+        <div class="empty-state">
+            <i class="bi bi-clipboard-check"></i>
+            No active students in this class{% if form.data.section %} section{% endif %}.
+        </div>
+    </div></div>
+{% endif %}
+{% endblock %}

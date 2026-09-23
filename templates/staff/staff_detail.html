@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-person-video me-1"></i>Profile</span>
+                <div class="btn-group btn-group-sm">
+                    <a href="{% url 'staff:id_card' member.pk %}" target="_blank" class="btn btn-outline-secondary" title="Print ID card"><i class="bi bi-credit-card me-1"></i>ID Card</a>
+                    <a href="{% url 'staff:edit' member.pk %}" class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>Edit</a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% if member.photograph %}
+                        <img src="{{ member.photograph.url }}" class="rounded-circle" width="72" height="72" style="object-fit:cover" alt="{{ member.full_name }}">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary" style="width:72px;height:72px"><i class="bi bi-person" style="font-size:2rem"></i></div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-1">{{ member.full_name }}</h5>
+                        <div class="text-muted small">
+                            <span class="badge text-bg-primary">{{ member.employee_code }}</span>
+                            {{ member.designation|default:"Staff" }}
+                            {% if member.is_teacher %}<span class="badge text-bg-light border ms-1">Teacher</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Department</span><span>{{ member.department|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Status</span><span class="badge text-bg-{% if member.status == 'active' %}success{% elif member.status == 'left' %}secondary{% else %}danger{% endif %}">{{ member.get_status_display }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Gender</span><span>{{ member.get_gender_display|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Date of birth</span><span>{{ member.date_of_birth|date:"d M Y"|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Phone</span><span>{{ member.phone|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Email</span><span>{{ member.email|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Joined</span><span>{{ member.joining_date|date:"d M Y"|default:"—" }}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Years of service</span><span>{% if member.years_of_service is not None %}{{ member.years_of_service|floatformat:1 }}{% else %}—{% endif %}</span></li>
+                    <li class="list-group-item d-flex justify-content-between"><span class="text-muted">Monthly salary</span><span>{{ member.salary }}</span></li>
+                    <li class="list-group-item"><span class="text-muted d-block mb-1">Address</span>{{ member.address|default:"—" }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-mortarboard me-1"></i>Qualifications</span>
+            </div>
+            <ul class="list-group list-group-flush small">
+                {% for q in qualifications %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><strong>{{ q.qualification }}</strong>
+                            {% if q.institution %}<span class="text-muted"> · {{ q.institution }}</span>{% endif %}
+                            {% if q.year_completed %}<span class="text-muted"> · {{ q.year_completed }}</span>{% endif %}
+                            {% if q.grade %}<span class="badge text-bg-light border ms-1">{{ q.grade }}</span>{% endif %}
+                        </span>
+                        {% if q.is_certified %}<span class="badge text-bg-success">Certified</span>{% endif %}
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No qualifications recorded.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-briefcase me-1"></i>Experience</span></div>
+            <ul class="list-group list-group-flush small">
+                {% for exp in experiences %}
+                    <li class="list-group-item">
+                        <strong>{{ exp.job_title|default:exp.organisation }}</strong> — {{ exp.organisation }}
+                        <div class="text-muted">
+                            {% if exp.start_date %}from {{ exp.start_date|date:"M Y" }}{% endif %}
+                            {% if exp.current %} · Present{% elif exp.end_date %} · to {{ exp.end_date|date:"M Y" }}{% endif %}
+                            {% if exp.years %} · {{ exp.years|floatformat:1 }} yrs{% endif %}
+                        </div>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No prior experience recorded.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-graph-up me-1"></i>Leave balances</span></div>
+            <ul class="list-group list-group-flush small">
+                {% for bal in leave_balances %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ bal.leave_type.name }} <span class="text-muted">({{ bal.year }})</span></span>
+                        <span class="badge {% if bal.remaining > 0 %}text-bg-success{% else %}text-bg-danger{% endif %}">{{ bal.used }}/{{ bal.entitled }} used · {{ bal.remaining }} left</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No leave entitlement set up.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><span class="fw-semibold"><i class="bi bi-calendar-event me-1"></i>Leave requests</span></div>
+            <ul class="list-group list-group-flush small">
+                {% for req in leave_requests %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>{{ req.leave_type.name }} · {{ req.start_date|date:"d M" }}–{{ req.end_date|date:"d M" }}</span>
+                        <span class="badge text-bg-{% if req.status == 'approved' %}success{% elif req.status == 'pending' %}warning{% else %}danger{% endif %}">{{ req.get_status_display }}</span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No leave requests found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-folder2-open me-1"></i>Documents</span>
+                <a href="{% url 'staff:document_add' member.pk %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-upload me-1"></i>Upload</a>
+            </div>
+            <ul class="list-group list-group-flush small">
+                {% for doc in documents %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {% if doc.file %}<a href="{{ doc.file.url }}" target="_blank" class="text-decoration-none">{% endif %}
+                            <i class="bi bi-file-earmark-text me-1"></i>{{ doc.title }}
+                            <span class="text-muted small">({{ doc.get_document_type_display }})</span>
+                        {% if doc.file %}</a>{% endif %}
+                        <a href="{% url 'staff:document_delete' doc.pk %}" class="text-danger small" title="Delete"><i class="bi bi-trash"></i></a>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No documents uploaded.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold"><i class="bi bi-wallet2 me-1"></i>Recent pay slips</span>
+                <a href="{% url 'payroll:staff_slips' member.pk %}" class="btn btn-sm btn-outline-secondary">All slips</a>
+            </div>
+            <ul class="list-group list-group-flush small">
+                {% for slip in payslips %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="{% url 'payroll:slip' slip.pk %}" class="text-decoration-none">{{ slip.run.period_label }}</a>
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="text-muted">{{ slip.net }}</span>
+                            <a href="{% url 'payroll:slip_pdf' slip.pk %}" class="small text-secondary" title="PDF"><i class="bi bi-file-pdf"></i></a>
+                        </span>
+                    </li>
+                {% empty %}
+                    <li class="list-group-item text-center text-muted">No pay slips generated yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'staff:list' %}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>All staff</a>
+</div>
+{% endblock %}

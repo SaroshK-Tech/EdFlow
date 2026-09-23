@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-primary-soft"><i class="bi bi-book"></i></span>
+            <div><div class="stat-value">{{ total_books }}</div><div class="stat-label">Titles</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-info-soft"><i class="bi bi-copy"></i></span>
+            <div><div class="stat-value">{{ total_copies }}</div><div class="stat-label">Copies</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-success-soft"><i class="bi bi-check2-circle"></i></span>
+            <div><div class="stat-value">{{ available_copies }}</div><div class="stat-label">Available</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-book-half"></i></span>
+            <div><div class="stat-value">{{ issued_copies }}</div><div class="stat-label">Issued</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-danger-soft"><i class="bi bi-alarm"></i></span>
+            <div><div class="stat-value">{{ overdue_count }}</div><div class="stat-label">Overdue</div></div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-2">
+        <div class="card stat-card">
+            <span class="stat-icon bg-warning-soft"><i class="bi bi-cash-coin"></i></span>
+            <div><div class="stat-value">₹{{ fines_collected|floatformat:2 }}</div><div class="stat-label">Fines Collected</div></div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">Top Borrowers</div>
+            <div class="card-body">
+                <table class="table align-middle">
+                    <thead>
+                        <tr><th>#</th><th>Borrower</th><th class="text-end">Issues</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for member in top_borrowers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td class="fw-semibold">
+                                {{ member.name }}
+                                {% if member.student_id %}<span class="badge text-bg-info">{{ member.student.admission_number }}</span>
+                                {% elif member.staff_id %}<span class="badge text-bg-primary">{{ member.staff.employee_code }}</span>{% endif %}
+                            </td>
+                            <td class="text-end"><span class="badge text-bg-light">{{ member.total }}</span></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3"><div class="empty-state"><i class="bi bi-trophy"></i>No issue history yet.</div></td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Overdue Books</span>
+                <span class="badge text-bg-danger">{{ overdue_count }} overdue</span>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Barcode</th>
+                                <th>Book</th>
+                                <th>Member</th>
+                                <th>Due</th>
+                                <th class="text-end">Fine</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for issue in overdue_issues %}
+                            <tr>
+                                <td><span class="badge text-bg-light">{{ issue.copy.barcode }}</span></td>
+                                <td>{{ issue.copy.book.title }}</td>
+                                <td class="fw-semibold">{{ issue.member.name }}</td>
+                                <td><span class="text-danger">{{ issue.due_date }}</span></td>
+                                <td class="text-end">₹{{ issue.computed_fine|floatformat:2 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5">
+                                <div class="empty-state">
+                                    <i class="bi bi-calendar-check"></i>
+                                    Nothing overdue — all issues are on time.
+                                </div>
+                            </td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

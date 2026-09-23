@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Class" primary_url="academics:class_add" %}
+
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    {% include "partials/search_box.html" %}
+    <span class="small text-muted">Tabs: <a href="{% url 'academics:sections' %}" class="text-decoration-none">Sections</a> · <a href="{% url 'academics:subjects' %}" class="text-decoration-none">Subjects</a> · <a href="{% url 'academics:rooms' %}" class="text-decoration-none">Rooms</a></span>
+</div>
+
+{% if not classes %}
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-mortarboard"></i>
+                {% if q %}No classes match "{{ q }}".{% else %}No classes yet — add your first class.{% endif %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <section class="class-grid">
+        {% for klass in classes %}
+            <div class="class-card {% cycle 'card-teal' 'card-blue' 'card-red' 'card-brown' 'card-purple' 'card-cyan' 'card-orange' %}">
+                <div class="class-card-header">
+                    <div>
+                        <h2>{{ klass.name }}</h2>
+                        <p>{{ klass.student_count }} Students</p>
+                    </div>
+                    <div class="card-badge">{{ klass.sections.count }}</div>
+                </div>
+                <div class="class-card-footer">
+                    <div class="student-avatars">
+                        {% for section in klass.sections.all|slice:":3" %}
+                            <span class="avatar-chip">{{ section.name }}</span>
+                        {% empty %}
+                            <span class="avatar-chip">No sections</span>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'academics:class_edit' klass.pk %}" class="card-link" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </section>
+    {% include "partials/pagination.html" %}
+{% endif %}
+{% endblock %}

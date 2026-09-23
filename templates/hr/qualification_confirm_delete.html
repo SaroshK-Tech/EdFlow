@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Delete Qualification</h1>
+        <p class="page-subtitle mb-0">{{ qualification }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p class="mb-3">Delete <strong>{{ qualification }}</strong> from {{ qualification.staff.full_name }}'s profile? This cannot be undone.</p>
+        <form method="post" class="d-flex justify-content-between">
+            {% csrf_token %}
+            <a href="{% url 'hr:employee_detail' qualification.staff_id %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Delete</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

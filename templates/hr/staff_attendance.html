@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="get" class="mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small" for="hr-att-date">Date</label>
+            <input type="date" class="form-control" name="date" id="hr-att-date" value="{{ date }}">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary" type="submit">Filter</button>
+        </div>
+    </div>
+</form>
+
+{% if not attendance_available %}
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="bi bi-clipboard-check"></i>
+                Staff attendance lives in the Attendance module. Open
+                <a href="{% url 'attendance:staff' %}">Staff Attendance</a> there.
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Staff register for {{ date }}</span>
+            <span class="badge text-bg-light">{{ rows|length }} staff</span>
+        </div>
+        {% if rows %}
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="date" value="{{ date }}">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Designation</th>
+                                    <th>Mark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    <td><span class="badge text-bg-light">{{ row.staff.employee_code }}</span></td>
+                                    <td class="fw-semibold">{{ row.staff.full_name }}</td>
+                                    <td>{{ row.staff.designation|default:"—" }}</td>
+                                    <td style="min-width: 180px;">
+                                        <select class="form-select form-select-sm" name="status_{{ row.staff.pk }}">
+                                            {% for value, label in statuses %}
+                                                <option value="{{ value }}" {% if row.record.status == value %}selected{% elif not row.record and value == 'present' %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between bg-transparent">
+                    <a href="{% url 'hr:staff_attendance' %}" class="btn btn-outline-secondary">Reset</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save staff attendance</button>
+                </div>
+            </form>
+        {% else %}
+            <div class="card-body">
+                <div class="empty-state">
+                    <i class="bi bi-briefcase"></i>
+                    No active staff found.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

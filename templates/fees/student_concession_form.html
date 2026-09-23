@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle %}
+
+<form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="card">
+        <div class="card-header">Assignment details</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.student %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.concession %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.starts_on %}
+                </div>
+                <div class="col-md-6">
+                    {% include "partials/field.html" with field=form.ends_on %}
+                </div>
+                <div class="col-12">
+                    {% include "partials/field.html" with field=form.note %}
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between bg-transparent">
+            <a href="{% url 'fees:concession_assignments' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Assign</button>
+        </div>
+    </div>
+</form>
+{% endblock %}

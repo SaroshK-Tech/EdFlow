@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Add Subject" primary_url="academics:subject_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">Tabs: <a href="{% url 'academics:classes' %}" class="text-decoration-none">Classes</a> · <a href="{% url 'academics:sections' %}" class="text-decoration-none">Sections</a> · <a href="{% url 'academics:rooms' %}" class="text-decoration-none">Rooms</a></span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Code</th>
+                        <th>Classes using it</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for subject in subjects %}
+                    <tr>
+                        <td class="fw-semibold">{{ subject.name }}</td>
+                        <td><span class="badge text-bg-light">{{ subject.code|default:"—" }}</span></td>
+                        <td>{{ subject.classes.count }}</td>
+                        <td class="text-end">
+                            <a href="{% url 'academics:subject_edit' subject.pk %}" class="btn btn-sm btn-outline-primary" title="Edit"><i class="bi bi-pencil"></i></a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="4">
+                        <div class="empty-state">
+                            <i class="bi bi-journal-bookmark"></i>
+                            {% if q %}No subjects match "{{ q }}".{% else %}No subjects yet — add your first subject.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}

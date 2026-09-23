@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% include "partials/page_header.html" with title=page_title subtitle=page_subtitle primary_label="Issue Warning" primary_url="discipline:warning_add" %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            {% include "partials/search_box.html" %}
+            <span class="small text-muted">{{ warnings|length }} warning(s) shown</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Details</th>
+                        <th>Issued By</th>
+                        <th>Follow-up</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for w in warnings %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'discipline:student' w.student.pk %}" class="fw-semibold text-decoration-none">{{ w.student.full_name }}</a>
+                            <div class="small text-muted">{{ w.student.admission_number }}</div>
+                        </td>
+                        <td>{{ w.date }}</td>
+                        <td><span class="badge text-bg-{% if w.type == 'final' %}danger{% elif w.type == 'written' %}warning{% else %}secondary{% endif %}">{{ w.get_type_display }}</span></td>
+                        <td>
+                            {{ w.details|default:"—" }}
+                            {% if w.incident %}<div class="small text-muted">for: {{ w.incident.title }}</div>{% endif %}
+                        </td>
+                        <td>{{ w.issued_by|default:"—" }}</td>
+                        <td>
+                            {% if w.follow_up_required %}<span class="badge text-bg-warning">Required</span>{% else %}<span class="badge text-bg-light">—</span>{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            {% if q %}No warnings match "{{ q }}".{% else %}No warnings issued yet.{% endif %}
+                        </div>
+                    </td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include "partials/pagination.html" %}
+    </div>
+</div>
+{% endblock %}
